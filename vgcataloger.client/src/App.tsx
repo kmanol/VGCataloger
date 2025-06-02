@@ -1,38 +1,42 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 
-interface Forecast {
-    date: string;
-    temperatureC: number;
-    temperatureF: number;
-    summary: string;
+interface Game {
+    id: number;
+    title: string;
+    platform: string;
+    genre: string;
+    tags: string[];
+    releaseDate: string; // ISO string from JSON
 }
 
 function App() {
-    const [forecasts, setForecasts] = useState<Forecast[]>();
+    const [games, setGames] = useState<Game[]>();
 
     useEffect(() => {
-        populateWeatherData();
+        populateGamesData();
     }, []);
 
-    const contents = forecasts === undefined
-        ? <p><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationreact">https://aka.ms/jspsintegrationreact</a> for more details.</em></p>
+    const contents = games === undefined
+        ? <p><em>Loading...</em></p>
         : <table className="table table-striped" aria-labelledby="tableLabel">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Temp. (C)</th>
-                    <th>Temp. (F)</th>
-                    <th>Summary</th>
+                    <th>Title</th>
+                    <th>Platform</th>
+                    <th>Genre</th>
+                    <th>Tags</th>
+                    <th>Release Date</th>
                 </tr>
             </thead>
             <tbody>
-                {forecasts.map(forecast =>
-                    <tr key={forecast.date}>
-                        <td>{forecast.date}</td>
-                        <td>{forecast.temperatureC}</td>
-                        <td>{forecast.temperatureF}</td>
-                        <td>{forecast.summary}</td>
+                {games.map(game =>
+                    <tr key={game.id}>
+                        <td>{game.title}</td>
+                        <td>{game.platform}</td>
+                        <td>{game.genre}</td>
+                        <td>{game.tags.join(', ')}</td>
+                        <td>{new Date(game.releaseDate).toLocaleDateString()}</td>
                     </tr>
                 )}
             </tbody>
@@ -40,17 +44,17 @@ function App() {
 
     return (
         <div>
-            <h1 id="tableLabel">Weather forecast</h1>
-            <p>This component demonstrates fetching data from the server.</p>
+            <h1 id="tableLabel">Video Game Library</h1>
+            <p>This component displays your video game collection from the server.</p>
             {contents}
         </div>
     );
 
-    async function populateWeatherData() {
-        const response = await fetch('weatherforecast');
+    async function populateGamesData() {
+        const response = await fetch('games');
         if (response.ok) {
             const data = await response.json();
-            setForecasts(data);
+            setGames(data);
         }
     }
 }
