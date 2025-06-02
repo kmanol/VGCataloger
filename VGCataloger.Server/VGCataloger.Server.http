@@ -1,0 +1,6 @@
+@VGCataloger.Server_HostAddress = http://localhost:5092
+
+GET {{VGCataloger.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
