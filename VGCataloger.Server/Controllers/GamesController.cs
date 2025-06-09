@@ -16,10 +16,30 @@ namespace VGCataloger.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Game>>> Get()
+        public async Task<ActionResult<IEnumerable<GameDto>>> Get()
         {
-            var games = await _context.Games.ToListAsync();
-            return Ok(games);
+            try
+            {
+                var games = await _context.Games
+                    .Include(g => g.GamePlatforms)
+                        .ThenInclude(gp => gp.Platform)
+                    .Select(g => new GameDto
+                    {
+                        Id = g.Id,
+                        Title = g.Title,
+                        ReleaseDate = g.ReleaseDate,
+                        Platforms = g.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
+                    })
+                    .ToListAsync();
+
+                return Ok(games);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (in production, use a logger)
+                return StatusCode(500, ex.ToString());
+            }
         }
+
     }
 }

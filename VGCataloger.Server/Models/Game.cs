@@ -1,3 +1,5 @@
+using VGCataloger.Server.Models;
+
 namespace VGCataloger.Server
 {
     public class Game
@@ -5,5 +7,7 @@ namespace VGCataloger.Server
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public DateTime ReleaseDate { get; set; }
+
+        public ICollection<GamePlatform> GamePlatforms { get; set; } = new List<GamePlatform>();
     }
 }

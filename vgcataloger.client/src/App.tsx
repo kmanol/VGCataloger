@@ -4,9 +4,9 @@ import './App.css';
 interface Game {
     id: number;
     title: string;
-    platform: string;
-    genre: string;
-    tags: string[];
+    platforms: string[];
+    //genre: string[];
+    //tags: string[];
     releaseDate: string; // ISO string from JSON
 }
 
@@ -23,6 +23,7 @@ function App() {
             <thead>
                 <tr>
                     <th>Title</th>
+                    <th>Platforms</th>
                     <th>Release Date</th>
                 </tr>
             </thead>
@@ -30,6 +31,7 @@ function App() {
                 {games.map(game =>
                     <tr key={game.id}>
                         <td>{game.title}</td>
+                        <td>{game.platforms.join(', ')}</td>
                         <td>{new Date(game.releaseDate).toLocaleDateString()}</td>
                     </tr>
                 )}
