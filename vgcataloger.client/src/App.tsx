@@ -5,8 +5,8 @@ interface Game {
     id: number;
     title: string;
     platforms: string[];
-    //genre: string[];
-    //tags: string[];
+    genres: string[];
+    tags: string[];
     releaseDate: string; // ISO string from JSON
 }
 
@@ -24,6 +24,8 @@ function App() {
                 <tr>
                     <th>Title</th>
                     <th>Platforms</th>
+                    <th>Genres</th>
+                    <th>Tags</th>
                     <th>Release Date</th>
                 </tr>
             </thead>
@@ -32,6 +34,8 @@ function App() {
                     <tr key={game.id}>
                         <td>{game.title}</td>
                         <td>{game.platforms.join(', ')}</td>
+                        <td>{game.genres.join(', ')}</td>
+                        <td>{game.tags.join(', ')}</td>
                         <td>{new Date(game.releaseDate).toLocaleDateString()}</td>
                     </tr>
                 )}

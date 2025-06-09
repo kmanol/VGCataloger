@@ -9,5 +9,7 @@ namespace VGCataloger.Server
         public DateTime ReleaseDate { get; set; }
 
         public ICollection<GamePlatform> GamePlatforms { get; set; } = new List<GamePlatform>();
+        public ICollection<GameGenre> GameGenres { get; set; } = new List<GameGenre>();
+        public ICollection<GameTag> GameTags { get; set; } = new List<GameTag>();
     }
 }
