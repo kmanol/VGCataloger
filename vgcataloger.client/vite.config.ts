@@ -47,10 +47,6 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/weatherforecast': {
-                target,
-                secure: false
-            },
             '^/games': { // <-- Add this block
                 target,
                 secure: false

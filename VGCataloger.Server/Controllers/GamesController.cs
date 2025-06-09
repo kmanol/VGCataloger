@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
-using VGCataloger.Server;
+using Microsoft.EntityFrameworkCore;
+using VGCataloger.Server.Data;
 
 namespace VGCataloger.Server.Controllers
 {
@@ -8,21 +8,18 @@ namespace VGCataloger.Server.Controllers
     [Route("[controller]")]
     public class GamesController : ControllerBase
     {
-        private readonly string _dataFile = Path.Combine("Data", "games.json");
+        private readonly AppDbContext _context;
+
+        public GamesController(AppDbContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Game>>> Get()
         {
-            if (!System.IO.File.Exists(_dataFile))
-                return NotFound("Game data file not found.");
-
-            using var stream = System.IO.File.OpenRead(_dataFile);
-            var games = await JsonSerializer.DeserializeAsync<List<Game>>(stream, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return Ok(games ?? new List<Game>());
+            var games = await _context.Games.ToListAsync();
+            return Ok(games);
         }
     }
 }

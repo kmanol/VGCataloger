@@ -23,9 +23,6 @@ function App() {
             <thead>
                 <tr>
                     <th>Title</th>
-                    <th>Platform</th>
-                    <th>Genre</th>
-                    <th>Tags</th>
                     <th>Release Date</th>
                 </tr>
             </thead>
@@ -33,9 +30,6 @@ function App() {
                 {games.map(game =>
                     <tr key={game.id}>
                         <td>{game.title}</td>
-                        <td>{game.platform}</td>
-                        <td>{game.genre}</td>
-                        <td>{game.tags.join(', ')}</td>
                         <td>{new Date(game.releaseDate).toLocaleDateString()}</td>
                     </tr>
                 )}
