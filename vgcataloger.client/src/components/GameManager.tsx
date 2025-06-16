@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
     Box,
     Card,
     CardContent,
-    Stack,
     TextField,
     Button,
     Typography,
@@ -14,7 +13,8 @@ import {
     MenuItem,
     Checkbox,
     ListItemText,
-    Grid
+    Chip,
+    Stack
 } from '@mui/material';
 
 interface Game {
@@ -32,13 +32,14 @@ interface Props {
 }
 
 export default function GameManager({ games, onGamesChange }: Props) {
-    const [editingGame, setEditingGame] = useState<Game | null>(null);
     const [form, setForm] = useState<Partial<Game>>({});
     const [platformOptions, setPlatformOptions] = useState<string[]>([]);
     const [genreOptions, setGenreOptions] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [showAddGame, setShowAddGame] = useState(false);
+
+    const apiRef = useGridApiRef();
 
     useEffect(() => {
         setLoading(true);
@@ -71,27 +72,14 @@ export default function GameManager({ games, onGamesChange }: Props) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingGame) {
-            const response = await fetch(`games/${editingGame.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
-            });
-            if (response.ok) {
-                await refreshGames();
-                setEditingGame(null);
-                setForm({});
-            }
-        } else {
-            const response = await fetch('games', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
-            });
-            if (response.ok) {
-                await refreshGames();
-                setForm({});
-            }
+        const response = await fetch('games', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(form),
+        });
+        if (response.ok) {
+            await refreshGames();
+            setForm({});
         }
     };
 
@@ -102,16 +90,19 @@ export default function GameManager({ games, onGamesChange }: Props) {
         }
     };
 
+    // For grid, keep arrays for platforms/genres/tags
     const gridRows = games.map(game => ({
         ...game,
-        platforms: Array.isArray(game.platforms) ? game.platforms.join(', ') : '',
-        genres: Array.isArray(game.genres) ? game.genres.join(', ') : '',
-        tags: Array.isArray(game.tags) ? game.tags.join(', ') : '',
+        platforms: Array.isArray(game.platforms) ? game.platforms : [],
+        genres: Array.isArray(game.genres) ? game.genres : [],
+        tags: Array.isArray(game.tags) ? game.tags : [],
         releaseDate: game.releaseDate ? new Date(game.releaseDate).toISOString().substring(0, 10) : '',
     }));
 
-    const parseArray = (value: string) =>
-        value.split(',').map(s => s.trim()).filter(Boolean);
+    const parseArray = (value: string | string[]) =>
+        Array.isArray(value)
+            ? value
+            : value.split(',').map(s => s.trim()).filter(Boolean);
 
     const processRowUpdate = async (newRow: any) => {
         const updatedRow: Game = {
@@ -127,26 +118,46 @@ export default function GameManager({ games, onGamesChange }: Props) {
         });
         if (response.ok) {
             await refreshGames();
-            return {
-                ...updatedRow,
-                platforms: updatedRow.platforms.join(', '),
-                genres: updatedRow.genres.join(', '),
-                tags: updatedRow.tags.join(', '),
-            };
+            return updatedRow;
         }
         return newRow;
     };
 
+    // Render chips for array fields
+    function renderChipsCell(values: string[]) {
+        return (
+            <Stack
+                direction="row"
+                spacing={0.5}
+                flexWrap="wrap"
+                alignItems="center"
+                justifyContent="center"
+                sx={{ height: '100%', width: '100%' }}
+            >
+                {values.map((value, idx) => (
+                    <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
+                ))}
+            </Stack>
+        );
+    }
+
+    // Custom edit cell for Select with checkboxes and chips
     function renderEditSelectCell(options: string[]) {
         return (params: any) => (
             <Select
                 multiple
-                value={params.value ? parseArray(params.value) : []}
+                value={parseArray(params.value)}
                 onChange={e => {
                     const value = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
-                    params.api.setEditCellValue({ id: params.id, field: params.field, value: value.join(', ') }, e);
+                    params.api.setEditCellValue({ id: params.id, field: params.field, value }, e);
                 }}
-                renderValue={(selected) => (selected as string[]).join(', ')}
+                renderValue={(selected) => (
+                    <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                        {(selected as string[]).map((value, idx) => (
+                            <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
+                        ))}
+                    </Stack>
+                )}
                 size="small"
                 fullWidth
                 sx={{ width: '100%', height: '100%' }}
@@ -154,7 +165,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             >
                 {options.map(option => (
                     <MenuItem key={option} value={option}>
-                        <Checkbox checked={params.value ? parseArray(params.value).indexOf(option) > -1 : false} />
+                        <Checkbox checked={parseArray(params.value).indexOf(option) > -1} />
                         <ListItemText primary={option} />
                     </MenuItem>
                 ))}
@@ -186,35 +197,38 @@ export default function GameManager({ games, onGamesChange }: Props) {
     }
 
     const columns = [
-        {
-            field: 'title',
-            headerName: 'Title',
-            flex: 3,
-            minWidth: 120,
-            editable: true
-        },
+        { field: 'title', headerName: 'Title', flex: 2, minWidth: 180, editable: true },
         {
             field: 'platforms',
             headerName: 'Platforms',
-            flex: 1,
-            minWidth: 120,
+            flex: 2,
+            minWidth: 180,
             editable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params: any) => renderChipsCell(parseArray(params.value)),
             renderEditCell: renderEditSelectCell(platformOptions),
         },
         {
             field: 'genres',
             headerName: 'Genres',
-            flex: 1,
-            minWidth: 120,
+            flex: 2,
+            minWidth: 180,
             editable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params: any) => renderChipsCell(parseArray(params.value)),
             renderEditCell: renderEditSelectCell(genreOptions),
         },
         {
             field: 'tags',
             headerName: 'Tags',
             flex: 3,
-            minWidth: 120,
+            minWidth: 220,
             editable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params: any) => renderChipsCell(parseArray(params.value)),
             renderEditCell: renderEditSelectCell(tagOptions),
         },
         {
@@ -223,6 +237,8 @@ export default function GameManager({ games, onGamesChange }: Props) {
             flex: 1,
             minWidth: 120,
             editable: true,
+            align: 'center',
+            headerAlign: 'center',
             renderEditCell: renderEditDateCell,
         },
         {
@@ -247,7 +263,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
     ];
 
     return (
-        <Box sx={{ maxWidth: 1800, minWidth: 900, mx: 'auto', mt: 4 }}>
+        <Box sx={{ maxWidth: 1600, minWidth: 1100, mx: 'auto', mt: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                 <Button
                     variant="contained"
@@ -258,119 +274,122 @@ export default function GameManager({ games, onGamesChange }: Props) {
                 </Button>
             </Box>
             {showAddGame && (
-                <Card sx={{ mb: 3 }}>
+                <Card sx={{ mb: 3, maxWidth: 1200, mx: "auto" }}>
                     <CardContent>
-                        <Typography variant="h6" gutterBottom>
-                            {editingGame ? 'Edit Game' : 'Add Game'}
+                        <Typography variant="h6" gutterBottom align="center">
+                            Add Game
                         </Typography>
                         <form onSubmit={handleSubmit}>
-                            <Grid container spacing={2} alignItems="center">
-                                <Grid item xs={12} sm={2}>
-                                    <TextField
-                                        name="title"
-                                        label="Title"
-                                        value={form.title || ''}
-                                        onChange={handleChange}
-                                        required
-                                        size="small"
-                                        fullWidth
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={2}>
-                                    <Select
-                                        multiple
-                                        name="platforms"
-                                        value={form.platforms || []}
-                                        onChange={e => handleSelectChange('platforms', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
-                                        renderValue={(selected) => (selected as string[]).join(', ')}
-                                        size="small"
-                                        fullWidth
-                                        displayEmpty
-                                    >
-                                        {platformOptions.map(option => (
-                                            <MenuItem key={option} value={option}>
-                                                <Checkbox checked={form.platforms?.indexOf(option) > -1} />
-                                                <ListItemText primary={option} />
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </Grid>
-                                <Grid item xs={12} sm={2}>
-                                    <Select
-                                        multiple
-                                        name="genres"
-                                        value={form.genres || []}
-                                        onChange={e => handleSelectChange('genres', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
-                                        renderValue={(selected) => (selected as string[]).join(', ')}
-                                        size="small"
-                                        fullWidth
-                                        displayEmpty
-                                    >
-                                        {genreOptions.map(option => (
-                                            <MenuItem key={option} value={option}>
-                                                <Checkbox checked={form.genres?.indexOf(option) > -1} />
-                                                <ListItemText primary={option} />
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </Grid>
-                                <Grid item xs={12} sm={3}>
-                                    <Select
-                                        multiple
-                                        name="tags"
-                                        value={form.tags || []}
-                                        onChange={e => handleSelectChange('tags', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
-                                        renderValue={(selected) => (selected as string[]).join(', ')}
-                                        size="small"
-                                        fullWidth
-                                        displayEmpty
-                                    >
-                                        {tagOptions.map(option => (
-                                            <MenuItem key={option} value={option}>
-                                                <Checkbox checked={form.tags?.indexOf(option) > -1} />
-                                                <ListItemText primary={option} />
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </Grid>
-                                <Grid item xs={12} sm={2}>
-                                    <TextField
-                                        type="date"
-                                        name="releaseDate"
-                                        label="Release Date"
-                                        value={form.releaseDate ? form.releaseDate.substring(0, 10) : ''}
-                                        onChange={handleChange}
-                                        required
-                                        size="small"
-                                        fullWidth
-                                        InputLabelProps={{ shrink: true }}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={1} sx={{ display: 'flex', gap: 1 }}>
-                                    <Button type="submit" variant="contained" color="primary" fullWidth>
-                                        {editingGame ? 'Update' : 'Add'}
-                                    </Button>
-                                    {editingGame && (
-                                        <Button
-                                            type="button"
-                                            variant="outlined"
-                                            color="secondary"
-                                            onClick={() => {
-                                                setEditingGame(null);
-                                                setForm({});
-                                            }}
-                                            fullWidth
-                                        >
-                                            Cancel
-                                        </Button>
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                                <TextField
+                                    name="title"
+                                    label="Title"
+                                    value={form.title || ''}
+                                    onChange={handleChange}
+                                    required
+                                    size="small"
+                                    fullWidth
+                                    sx={{ flex: '2 1 200px', minWidth: 180 }}
+                                />
+                                <Select
+                                    multiple
+                                    name="platforms"
+                                    value={form.platforms || []}
+                                    onChange={e => handleSelectChange('platforms', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
+                                    renderValue={(selected) => (
+                                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                            {(selected as string[]).map((value, idx) => (
+                                                <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
+                                            ))}
+                                        </Stack>
                                     )}
-                                </Grid>
-                            </Grid>
+                                    size="small"
+                                    fullWidth
+                                    displayEmpty
+                                    sx={{ flex: '2 1 180px', minWidth: 180 }}
+                                >
+                                    {platformOptions.map(option => (
+                                        <MenuItem key={option} value={option}>
+                                            <Checkbox checked={form.platforms?.indexOf(option) > -1} />
+                                            <ListItemText primary={option} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                <Select
+                                    multiple
+                                    name="genres"
+                                    value={form.genres || []}
+                                    onChange={e => handleSelectChange('genres', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
+                                    renderValue={(selected) => (
+                                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                            {(selected as string[]).map((value, idx) => (
+                                                <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
+                                            ))}
+                                        </Stack>
+                                    )}
+                                    size="small"
+                                    fullWidth
+                                    displayEmpty
+                                    sx={{ flex: '2 1 180px', minWidth: 180 }}
+                                >
+                                    {genreOptions.map(option => (
+                                        <MenuItem key={option} value={option}>
+                                            <Checkbox checked={form.genres?.indexOf(option) > -1} />
+                                            <ListItemText primary={option} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                <Select
+                                    multiple
+                                    name="tags"
+                                    value={form.tags || []}
+                                    onChange={e => handleSelectChange('tags', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
+                                    renderValue={(selected) => (
+                                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                            {(selected as string[]).map((value, idx) => (
+                                                <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
+                                            ))}
+                                        </Stack>
+                                    )}
+                                    size="small"
+                                    fullWidth
+                                    displayEmpty
+                                    sx={{ flex: '3 1 220px', minWidth: 220 }}
+                                >
+                                    {tagOptions.map(option => (
+                                        <MenuItem key={option} value={option}>
+                                            <Checkbox checked={form.tags?.indexOf(option) > -1} />
+                                            <ListItemText primary={option} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                <TextField
+                                    type="date"
+                                    name="releaseDate"
+                                    label="Release Date"
+                                    value={form.releaseDate ? form.releaseDate.substring(0, 10) : ''}
+                                    onChange={handleChange}
+                                    required
+                                    size="small"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{ flex: '1 1 120px', minWidth: 120 }}
+                                />
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{ flex: '0 1 100px', minWidth: 100, alignSelf: 'center', height: 40 }}
+                                >
+                                    Add
+                                </Button>
+                            </Box>
                         </form>
                     </CardContent>
                 </Card>
             )}
             <DataGrid
+                apiRef={apiRef}
                 rows={gridRows}
                 columns={columns}
                 paginationModel={{ pageSize: 10, page: 0 }}
@@ -380,6 +399,11 @@ export default function GameManager({ games, onGamesChange }: Props) {
                 autoHeight
                 processRowUpdate={processRowUpdate}
                 editMode="cell"
+                onCellClick={(params, event) => {
+                    if (params.colDef.editable) {
+                        apiRef.current.startCellEditMode({ id: params.id, field: params.field });
+                    }
+                }}
             />
         </Box>
     );
