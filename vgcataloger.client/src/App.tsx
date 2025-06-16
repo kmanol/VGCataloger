@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import GameManager from './components/GameManager';
+import LovManager from './components/LovManager';
 import './App.css';
 
 interface Game {
@@ -17,39 +20,6 @@ function App() {
         populateGamesData();
     }, []);
 
-    const contents = games === undefined
-        ? <p><em>Loading...</em></p>
-        : <table className="table table-striped" aria-labelledby="tableLabel">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Platforms</th>
-                    <th>Genres</th>
-                    <th>Tags</th>
-                    <th>Release Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {games.map(game =>
-                    <tr key={game.id}>
-                        <td>{game.title}</td>
-                        <td>{game.platforms.join(', ')}</td>
-                        <td>{game.genres.join(', ')}</td>
-                        <td>{game.tags.join(', ')}</td>
-                        <td>{new Date(game.releaseDate).toLocaleDateString()}</td>
-                    </tr>
-                )}
-            </tbody>
-        </table>;
-
-    return (
-        <div>
-            <h1 id="tableLabel">Video Game Library</h1>
-            <p>This component displays your video game collection from the server.</p>
-            {contents}
-        </div>
-    );
-
     async function populateGamesData() {
         const response = await fetch('games');
         if (response.ok) {
@@ -57,6 +27,25 @@ function App() {
             setGames(data);
         }
     }
+
+    return (
+        <Router>
+            <nav>
+                <Link to="/">Games</Link> | <Link to="/manage-lov">Manage Platforms/Genres/Tags</Link>
+            </nav>
+            <Routes>
+                <Route
+                    path="/"
+                    element={
+                        games === undefined
+                            ? <p><em>Loading...</em></p>
+                            : <GameManager games={games} onGamesChange={setGames} />
+                    }
+                />
+                <Route path="/manage-lov" element={<LovManager />} />
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;

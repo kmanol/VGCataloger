@@ -50,6 +50,18 @@ export default defineConfig({
             '^/games': { // <-- Add this block
                 target,
                 secure: false
+            },
+            '^/platforms': {
+                target,
+                secure: false
+            },
+            '^/genres': {
+                target,
+                secure: false
+            },
+            '^/tags': {
+                target,
+                secure: false
             }
         },
         port: parseInt(env.DEV_SERVER_PORT || '57566'),
