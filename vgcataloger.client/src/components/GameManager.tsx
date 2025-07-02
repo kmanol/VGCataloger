@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
+
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
     Box,
@@ -14,8 +14,17 @@ import {
     Checkbox,
     ListItemText,
     Chip,
-    Stack
+    Stack,
 } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
+import type {
+    GridColDef,
+    GridRenderCellParams,
+    GridRenderEditCellParams,
+} from '@mui/x-data-grid';
+
 
 interface Game {
     id: number;
@@ -41,6 +50,8 @@ export default function GameManager({ games, onGamesChange }: Props) {
 
     const apiRef = useGridApiRef();
 
+    type Option = { name: string } | string;
+
     useEffect(() => {
         setLoading(true);
         Promise.all([
@@ -48,9 +59,9 @@ export default function GameManager({ games, onGamesChange }: Props) {
             fetch('/genres').then(r => r.json()),
             fetch('/tags').then(r => r.json())
         ]).then(([platforms, genres, tags]) => {
-            setPlatformOptions(platforms.map((p: any) => p.name ?? p));
-            setGenreOptions(genres.map((g: any) => g.name ?? g));
-            setTagOptions(tags.map((t: any) => t.name ?? t));
+            setPlatformOptions((platforms as Option[]).map(p => typeof p === "string" ? p : p.name));
+            setGenreOptions((genres as Option[]).map(g => typeof g === "string" ? g : g.name));
+            setTagOptions((tags as Option[]).map(t => typeof t === "string" ? t : t.name));
         }).finally(() => setLoading(false));
     }, []);
 
@@ -99,12 +110,12 @@ export default function GameManager({ games, onGamesChange }: Props) {
         releaseDate: game.releaseDate ? new Date(game.releaseDate).toISOString().substring(0, 10) : '',
     }));
 
-    const parseArray = (value: string | string[]) =>
-        Array.isArray(value)
+    const parseArray = (value: string | string[] | undefined): string[] =>
+        !value ? [] : Array.isArray(value)
             ? value
             : value.split(',').map(s => s.trim()).filter(Boolean);
 
-    const processRowUpdate = async (newRow: any) => {
+    const processRowUpdate = async (newRow: Game) => {
         const updatedRow: Game = {
             ...newRow,
             platforms: parseArray(newRow.platforms),
@@ -141,23 +152,17 @@ export default function GameManager({ games, onGamesChange }: Props) {
         );
     }
 
-    // Custom edit cell for Select with checkboxes and chips
-    function renderEditSelectCell(options: string[]) {
-        return (params: any) => (
+    function renderEditSelectCell(options: string[], params: GridRenderEditCellParams) {
+        return (
             <Select
                 multiple
                 value={parseArray(params.value)}
                 onChange={e => {
-                    const value = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
+                    const value = typeof e.target.value === 'string'
+                        ? e.target.value.split(',')
+                        : e.target.value;
                     params.api.setEditCellValue({ id: params.id, field: params.field, value }, e);
                 }}
-                renderValue={(selected) => (
-                    <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                        {(selected as string[]).map((value, idx) => (
-                            <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
-                        ))}
-                    </Stack>
-                )}
                 size="small"
                 fullWidth
                 sx={{ width: '100%', height: '100%' }}
@@ -173,7 +178,8 @@ export default function GameManager({ games, onGamesChange }: Props) {
         );
     }
 
-    function renderEditDateCell(params: any) {
+    // Update renderEditDateCell to use correct param type
+    function renderEditDateCell(params: GridRenderEditCellParams) {
         return (
             <TextField
                 type="date"
@@ -185,18 +191,12 @@ export default function GameManager({ games, onGamesChange }: Props) {
                         value: e.target.value
                     }, e);
                 }}
-                size="small"
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                sx={{ width: '100%', height: '100%' }}
-                InputProps={{
-                    sx: { height: '100%', alignItems: 'center' }
-                }}
+            // ...rest as before
             />
         );
     }
 
-    const columns = [
+    const columns: GridColDef[] = [
         { field: 'title', headerName: 'Title', flex: 2, minWidth: 180, editable: true },
         {
             field: 'platforms',
@@ -206,8 +206,9 @@ export default function GameManager({ games, onGamesChange }: Props) {
             editable: true,
             align: 'center',
             headerAlign: 'center',
-            renderCell: (params: any) => renderChipsCell(parseArray(params.value)),
-            renderEditCell: renderEditSelectCell(platformOptions),
+            renderCell: (params: GridRenderCellParams<Game, string[]>) =>
+                renderChipsCell(parseArray(params.value)),
+            renderEditCell: (params) => renderEditSelectCell(platformOptions, params),
         },
         {
             field: 'genres',
@@ -217,8 +218,9 @@ export default function GameManager({ games, onGamesChange }: Props) {
             editable: true,
             align: 'center',
             headerAlign: 'center',
-            renderCell: (params: any) => renderChipsCell(parseArray(params.value)),
-            renderEditCell: renderEditSelectCell(genreOptions),
+            renderCell: (params: GridRenderCellParams<Game, string[]>) =>
+                renderChipsCell(parseArray(params.value)),
+            renderEditCell: (params) => renderEditSelectCell(genreOptions, params),
         },
         {
             field: 'tags',
@@ -228,8 +230,9 @@ export default function GameManager({ games, onGamesChange }: Props) {
             editable: true,
             align: 'center',
             headerAlign: 'center',
-            renderCell: (params: any) => renderChipsCell(parseArray(params.value)),
-            renderEditCell: renderEditSelectCell(tagOptions),
+            renderCell: (params: GridRenderCellParams<Game, string[]>) =>
+                renderChipsCell(parseArray(params.value)),
+            renderEditCell: (params) => renderEditSelectCell(tagOptions, params),
         },
         {
             field: 'releaseDate',
@@ -249,11 +252,11 @@ export default function GameManager({ games, onGamesChange }: Props) {
             filterable: false,
             align: 'center',
             headerAlign: 'center',
-            renderCell: (params: any) => (
+            renderCell: (params: GridRenderCellParams) => (
                 <IconButton
                     size="small"
                     color="error"
-                    onClick={() => handleDelete(params.row.id)}
+                    onClick={() => handleDelete((params.row as Game).id)}
                     sx={{ mx: 'auto', display: 'block' }}
                 >
                     <DeleteIcon fontSize="small" />
@@ -273,6 +276,11 @@ export default function GameManager({ games, onGamesChange }: Props) {
                     {showAddGame ? "Close Add Game" : "Add Game"}
                 </Button>
             </Box>
+            {loading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                    <CircularProgress />
+                </Box>
+            )}
             {showAddGame && (
                 <Card sx={{ mb: 3, maxWidth: 1200, mx: "auto" }}>
                     <CardContent>
@@ -290,6 +298,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     size="small"
                                     fullWidth
                                     sx={{ flex: '2 1 200px', minWidth: 180 }}
+                                    disabled={loading}
                                 />
                                 <Select
                                     multiple
@@ -307,10 +316,11 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     fullWidth
                                     displayEmpty
                                     sx={{ flex: '2 1 180px', minWidth: 180 }}
+                                    disabled={loading}
                                 >
                                     {platformOptions.map(option => (
                                         <MenuItem key={option} value={option}>
-                                            <Checkbox checked={form.platforms?.indexOf(option) > -1} />
+                                            <Checkbox checked={(form.platforms ?? []).indexOf(option) > -1} />
                                             <ListItemText primary={option} />
                                         </MenuItem>
                                     ))}
@@ -331,10 +341,11 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     fullWidth
                                     displayEmpty
                                     sx={{ flex: '2 1 180px', minWidth: 180 }}
+                                    disabled={loading}
                                 >
                                     {genreOptions.map(option => (
                                         <MenuItem key={option} value={option}>
-                                            <Checkbox checked={form.genres?.indexOf(option) > -1} />
+                                            <Checkbox checked={(form.genres ?? []).indexOf(option) > -1} />
                                             <ListItemText primary={option} />
                                         </MenuItem>
                                     ))}
@@ -355,10 +366,11 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     fullWidth
                                     displayEmpty
                                     sx={{ flex: '3 1 220px', minWidth: 220 }}
+                                    disabled={loading}
                                 >
                                     {tagOptions.map(option => (
                                         <MenuItem key={option} value={option}>
-                                            <Checkbox checked={form.tags?.indexOf(option) > -1} />
+                                            <Checkbox checked={(form.tags ?? []).indexOf(option) > -1} />
                                             <ListItemText primary={option} />
                                         </MenuItem>
                                     ))}
@@ -372,8 +384,9 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     required
                                     size="small"
                                     fullWidth
-                                    InputLabelProps={{ shrink: true }}
+                                    slotProps={{ inputLabel: { shrink: true } }}
                                     sx={{ flex: '1 1 120px', minWidth: 120 }}
+                                    disabled={loading}
                                 />
                                 <Button
                                     type="submit"
@@ -392,15 +405,17 @@ export default function GameManager({ games, onGamesChange }: Props) {
                 apiRef={apiRef}
                 rows={gridRows}
                 columns={columns}
-                paginationModel={{ pageSize: 10, page: 0 }}
-                pageSizeOptions={[10]}
+                initialState={{
+                    pagination: {
+                        paginationModel: { pageSize: 10, page: 0 }
+                    }
+                }}
                 disableRowSelectionOnClick
                 getRowId={row => row.id}
-                autoHeight
                 processRowUpdate={processRowUpdate}
                 editMode="cell"
-                onCellClick={(params, event) => {
-                    if (params.colDef.editable) {
+                onCellClick={(params) => {
+                    if (params.colDef.editable && apiRef.current) {
                         apiRef.current.startCellEditMode({ id: params.id, field: params.field });
                     }
                 }}

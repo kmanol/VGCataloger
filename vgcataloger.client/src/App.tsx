@@ -31,7 +31,7 @@ function App() {
     return (
         <Router>
             <nav>
-                <Link to="/">Games</Link> | <Link to="/manage-lov">Manage Platforms/Genres/Tags</Link>
+                <Link to="/">Games</Link> | <Link to="/manage-lov">Manage</Link>
             </nav>
             <Routes>
                 <Route
