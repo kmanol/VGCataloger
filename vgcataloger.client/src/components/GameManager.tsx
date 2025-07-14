@@ -175,6 +175,13 @@ export default function GameManager({ games, onGamesChange }: Props) {
                 fullWidth
                 sx={{ width: '100%', height: '100%' }}
                 MenuProps={{ PaperProps: { style: { maxHeight: 300 } } }}
+                renderValue={(selected) => (
+                    <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                        {(selected as string[]).map((value, idx) => (
+                            <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
+                        ))}
+                    </Stack>
+                )}
             >
                 {options.map(option => (
                     <MenuItem key={option} value={option}>
@@ -185,8 +192,6 @@ export default function GameManager({ games, onGamesChange }: Props) {
             </Select>
         );
     }
-
-    // Update renderEditDateCell to use correct param type
     function renderEditDateCell(params: GridRenderEditCellParams) {
         return (
             <TextField
@@ -199,7 +204,18 @@ export default function GameManager({ games, onGamesChange }: Props) {
                         value: e.target.value
                     }, e);
                 }}
-            // ...rest as before
+                sx={{
+                    minWidth: 0,
+                    width: '100%',
+                    '& .MuiInputBase-root': {
+                        fontSize: '0.95rem',
+                        height: '100%',
+                    },
+                    '& input': {
+                        padding: '6px 8px',
+                        textAlign: 'center',
+                    },
+                }}
             />
         );
     }

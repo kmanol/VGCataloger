@@ -34,6 +34,7 @@ namespace VGCataloger.Server.Controllers
                         Genres = g.GameGenres.Select(gg => gg.Genre.Name).ToList(),
                         Tags = g.GameTags.Select(gt => gt.Tag.Name).ToList()
                     })
+                    .OrderBy(g => g.Title)
                     .ToListAsync();
 
                 return Ok(games);
