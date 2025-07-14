@@ -25,7 +25,6 @@ import type {
     GridRenderEditCellParams,
 } from '@mui/x-data-grid';
 
-
 interface Game {
     id: number;
     title: string;
@@ -47,6 +46,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
     const [tagOptions, setTagOptions] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [showAddGame, setShowAddGame] = useState(false);
+    const [search, setSearch] = useState('');
 
     const apiRef = useGridApiRef();
 
@@ -109,6 +109,14 @@ export default function GameManager({ games, onGamesChange }: Props) {
         tags: Array.isArray(game.tags) ? game.tags : [],
         releaseDate: game.releaseDate ? new Date(game.releaseDate).toISOString().substring(0, 10) : '',
     }));
+
+    // Filter gridRows by search
+    const filteredRows = gridRows.filter(game =>
+        game.title.toLowerCase().includes(search.toLowerCase()) ||
+        game.platforms.some(p => p.toLowerCase().includes(search.toLowerCase())) ||
+        game.genres.some(g => g.toLowerCase().includes(search.toLowerCase())) ||
+        game.tags.some(t => t.toLowerCase().includes(search.toLowerCase()))
+    );
 
     const parseArray = (value: string | string[] | undefined): string[] =>
         !value ? [] : Array.isArray(value)
@@ -184,7 +192,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             <TextField
                 type="date"
                 value={params.value ? params.value.substring(0, 10) : ''}
-                onChange={e => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     params.api.setEditCellValue({
                         id: params.id,
                         field: params.field,
@@ -276,6 +284,26 @@ export default function GameManager({ games, onGamesChange }: Props) {
                     {showAddGame ? "Close Add Game" : "Add Game"}
                 </Button>
             </Box>
+            <TextField
+                value={search}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+                placeholder="Search games, platforms, genres, tags..."
+                size="small"
+                fullWidth
+                sx={{
+                    mb: 2,
+                    borderRadius: 1,
+                    boxShadow: 1,
+                    backgroundColor: '#fff',
+                    '& .MuiInputBase-root': {
+                        backgroundColor: '#fff',
+                        borderRadius: 1,
+                    },
+                    '& .MuiInputBase-input': {
+                        color: '#222',
+                    },
+                }}
+            />
             {loading && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
                     <CircularProgress />
@@ -403,7 +431,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             )}
             <DataGrid
                 apiRef={apiRef}
-                rows={gridRows}
+                rows={filteredRows}
                 columns={columns}
                 initialState={{
                     pagination: {

@@ -19,7 +19,7 @@ namespace VGCataloger.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Genre>>> Get()
         {
-            return await _context.Genres.ToListAsync();
+            return await _context.Genres.OrderBy(p => p.Name).ToListAsync();
         }
 
         [HttpPost]
