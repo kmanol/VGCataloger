@@ -17,6 +17,7 @@ import {
     Stack,
 } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
+import Rating from '@mui/material/Rating';
 
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import type {
@@ -221,28 +222,25 @@ export default function GameManager({ games, onGamesChange }: Props) {
         );
     }
 
+    function renderRatingCell(params: GridRenderCellParams<Game, number | undefined>) {
+        return (
+            <Rating
+                value={params.value ?? null}
+                max={5}
+                readOnly
+                size="small"
+            />
+        );
+    }
+
     function renderEditRatingCell(params: GridRenderEditCellParams) {
         return (
-            <TextField
-                type="number"
-                value={params.value ?? ''}
-                onChange={e => {
-                    let value = e.target.value === '' ? undefined : Number(e.target.value);
-                    if (value !== undefined) {
-                        if (value < 0) value = 0;
-                        if (value > 10) value = 10;
-                        value = Math.round(value); // step 1
-                    }
-                    params.api.setEditCellValue({ id: params.id, field: params.field, value }, e);
-                }}
+            <Rating
+                value={params.value ?? null}
+                max={5}
                 size="small"
-                fullWidth
-                sx={{
-                    width: '100%',
-                    '& .MuiInputBase-root': {
-                        fontSize: '0.95rem',
-                        height: '100%',
-                    },
+                onChange={(_, value) => {
+                    params.api.setEditCellValue({ id: params.id, field: params.field, value }, undefined);
                 }}
             />
         );
@@ -304,6 +302,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             editable: true,
             align: 'center',
             headerAlign: 'center',
+            renderCell: renderRatingCell,
             renderEditCell: renderEditRatingCell,
         },
         {
@@ -470,23 +469,13 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     sx={{ flex: '1 1 120px', minWidth: 120 }}
                                     disabled={loading}
                                 />
-                                <TextField
+                                <Rating
                                     name="userRating"
-                                    label="User Rating"
-                                    type="number"
-                                    value={form.userRating ?? ''}
-                                    onChange={e => {
-                                        let value = e.target.value === '' ? undefined : Number(e.target.value);
-                                        if (value !== undefined) {
-                                            if (value < 0) value = 0;
-                                            if (value > 10) value = 10;
-                                            value = Math.round(value); // step 1
-                                        }
-                                        setForm({ ...form, userRating: value });
-                                    }}
-                                    size="small"
-                                    fullWidth
-                                    sx={{ flex: '1 1 120px', minWidth: 120 }}
+                                    value={form.userRating ?? null}
+                                    onChange={(_, value) => setForm({ ...form, userRating: value ?? undefined })}
+                                    max={10}
+                                    size="medium"
+                                    sx={{ flex: '1 1 120px', minWidth: 120, alignSelf: 'center', mt: 1 }}
                                     disabled={loading}
                                 />
                                 <Button

@@ -11,7 +11,7 @@ interface Game {
     genres: string[];
     tags: string[];
     releaseDate: string; // ISO string from JSON;
-    userRating: number; // 0-10
+    userRating: number; // 0-5
 }
 
 function App() {
