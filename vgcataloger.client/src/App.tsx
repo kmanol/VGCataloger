@@ -10,7 +10,8 @@ interface Game {
     platforms: string[];
     genres: string[];
     tags: string[];
-    releaseDate: string; // ISO string from JSON
+    releaseDate: string; // ISO string from JSON;
+    userRating: number; // 0-10
 }
 
 function App() {

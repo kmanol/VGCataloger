@@ -6,4 +6,5 @@ public class GameDto
     public required List<string> Platforms { get; set; }
     public required List<string> Genres { get; set; }
     public required List<string> Tags { get; set; }
+    public int? UserRating { get; set; }
 }

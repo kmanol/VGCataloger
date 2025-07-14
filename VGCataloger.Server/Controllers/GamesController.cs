@@ -32,7 +32,8 @@ namespace VGCataloger.Server.Controllers
                         ReleaseDate = g.ReleaseDate,
                         Platforms = g.GamePlatforms.Select(gp => gp.Platform.Name).ToList(),
                         Genres = g.GameGenres.Select(gg => gg.Genre.Name).ToList(),
-                        Tags = g.GameTags.Select(gt => gt.Tag.Name).ToList()
+                        Tags = g.GameTags.Select(gt => gt.Tag.Name).ToList(),
+                        UserRating = g.UserRating
                     })
                     .OrderBy(g => g.Title)
                     .ToListAsync();
@@ -56,7 +57,8 @@ namespace VGCataloger.Server.Controllers
                 ReleaseDate = gameDto.ReleaseDate,
                 GamePlatforms = new List<GamePlatform>(),
                 GameGenres = new List<GameGenre>(),
-                GameTags = new List<GameTag>()
+                GameTags = new List<GameTag>(),
+                UserRating = gameDto.UserRating
             };
 
             // Attach platforms
@@ -100,7 +102,8 @@ namespace VGCataloger.Server.Controllers
                 ReleaseDate = game.ReleaseDate,
                 Platforms = game.GamePlatforms.Select(gp => gp.Platform.Name).ToList(),
                 Genres = game.GameGenres.Select(gg => gg.Genre.Name).ToList(),
-                Tags = game.GameTags.Select(gt => gt.Tag.Name).ToList()
+                Tags = game.GameTags.Select(gt => gt.Tag.Name).ToList(),
+                UserRating = game.UserRating
             };
 
             return CreatedAtAction(nameof(Get), new { id = game.Id }, resultDto);
@@ -123,6 +126,7 @@ namespace VGCataloger.Server.Controllers
             // Update basic properties
             game.Title = gameDto.Title;
             game.ReleaseDate = gameDto.ReleaseDate;
+            game.UserRating = gameDto.UserRating;
 
             // Update platforms
             _context.GamePlatforms.RemoveRange(game.GamePlatforms);

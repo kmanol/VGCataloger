@@ -32,6 +32,7 @@ interface Game {
     genres: string[];
     tags: string[];
     releaseDate: string;
+    userRating?: number;
 }
 
 interface Props {
@@ -220,6 +221,33 @@ export default function GameManager({ games, onGamesChange }: Props) {
         );
     }
 
+    function renderEditRatingCell(params: GridRenderEditCellParams) {
+        return (
+            <TextField
+                type="number"
+                value={params.value ?? ''}
+                onChange={e => {
+                    let value = e.target.value === '' ? undefined : Number(e.target.value);
+                    if (value !== undefined) {
+                        if (value < 0) value = 0;
+                        if (value > 10) value = 10;
+                        value = Math.round(value); // step 1
+                    }
+                    params.api.setEditCellValue({ id: params.id, field: params.field, value }, e);
+                }}
+                size="small"
+                fullWidth
+                sx={{
+                    width: '100%',
+                    '& .MuiInputBase-root': {
+                        fontSize: '0.95rem',
+                        height: '100%',
+                    },
+                }}
+            />
+        );
+    }
+
     const columns: GridColDef[] = [
         { field: 'title', headerName: 'Title', flex: 2, minWidth: 180, editable: true },
         {
@@ -267,6 +295,16 @@ export default function GameManager({ games, onGamesChange }: Props) {
             align: 'center',
             headerAlign: 'center',
             renderEditCell: renderEditDateCell,
+        },
+        {
+            field: 'userRating',
+            headerName: 'User Rating',
+            flex: 1,
+            minWidth: 120,
+            editable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderEditCell: renderEditRatingCell,
         },
         {
             field: 'actions',
@@ -429,6 +467,25 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     size="small"
                                     fullWidth
                                     slotProps={{ inputLabel: { shrink: true } }}
+                                    sx={{ flex: '1 1 120px', minWidth: 120 }}
+                                    disabled={loading}
+                                />
+                                <TextField
+                                    name="userRating"
+                                    label="User Rating"
+                                    type="number"
+                                    value={form.userRating ?? ''}
+                                    onChange={e => {
+                                        let value = e.target.value === '' ? undefined : Number(e.target.value);
+                                        if (value !== undefined) {
+                                            if (value < 0) value = 0;
+                                            if (value > 10) value = 10;
+                                            value = Math.round(value); // step 1
+                                        }
+                                        setForm({ ...form, userRating: value });
+                                    }}
+                                    size="small"
+                                    fullWidth
                                     sx={{ flex: '1 1 120px', minWidth: 120 }}
                                     disabled={loading}
                                 />
