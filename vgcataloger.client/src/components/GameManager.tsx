@@ -327,7 +327,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
     ];
 
     return (
-        <Box sx={{ maxWidth: 1600, minWidth: 1100, mx: 'auto', mt: 4 }}>
+        <Box sx={{ maxWidth: 1920, minWidth: 1400, mx: 'auto', mt: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                 <Button
                     variant="contained"
