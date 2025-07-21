@@ -7,11 +7,15 @@ import './App.css';
 interface Game {
     id: number;
     title: string;
+    developers: string[];
+    publishers: string[];
     platforms: string[];
     genres: string[];
     tags: string[];
     releaseDate: string; // ISO string from JSON;
+    status: string;
     userRating: number; // 0-5
+    catalogs: string[];
 }
 
 function App() {

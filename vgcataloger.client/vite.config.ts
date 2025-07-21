@@ -62,6 +62,22 @@ export default defineConfig({
             '^/tags': {
                 target,
                 secure: false
+            },
+            '^/catalogs': {
+                target,
+                secure: false
+            },
+            '^/developers': {
+                target,
+                secure: false
+            },
+            '^/publishers': {
+                target,
+                secure: false
+            },
+            '^/statuses': {
+                target,
+                secure: false
             }
         },
         port: parseInt(env.DEV_SERVER_PORT || '57566'),

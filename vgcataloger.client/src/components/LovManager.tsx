@@ -16,7 +16,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-type LovType = 'platforms' | 'genres' | 'tags';
+type LovType = 'catalogs' | 'platforms' | 'genres' | 'tags' | 'developers' | 'publishers' | 'statuses';
 
 interface LovItem {
     id: number;
@@ -24,7 +24,7 @@ interface LovItem {
 }
 
 export default function LovManager() {
-    const [type, setType] = useState<LovType>('platforms');
+    const [type, setType] = useState<LovType>('catalogs');
     const [items, setItems] = useState<LovItem[]>([]);
     const [newName, setNewName] = useState('');
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -99,9 +99,13 @@ export default function LovManager() {
                             size="small"
                             sx={{ minWidth: 160 }}
                         >
+                            <MenuItem value="catalogs">Catalogs</MenuItem>
                             <MenuItem value="platforms">Platforms</MenuItem>
                             <MenuItem value="genres">Genres</MenuItem>
                             <MenuItem value="tags">Tags</MenuItem>
+                            <MenuItem value="developers">Developers</MenuItem>
+                            <MenuItem value="publishers">Publishers</MenuItem>
+                            <MenuItem value="statuses">Statuses</MenuItem>
                         </Select>
                     </Box>
                     <TextField
