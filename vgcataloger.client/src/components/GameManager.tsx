@@ -29,11 +29,15 @@ import type {
 interface Game {
     id: number;
     title: string;
+    developers: string[];
+    publishers: string[];
     platforms: string[];
     genres: string[];
     tags: string[];
     releaseDate: string;
+    statuses: string[];
     userRating?: number;
+    catalogs: string[];
 }
 
 interface Props {
@@ -43,9 +47,13 @@ interface Props {
 
 export default function GameManager({ games, onGamesChange }: Props) {
     const [form, setForm] = useState<Partial<Game>>({});
+    const [developerOptions, setDeveloperOptions] = useState<string[]>([]);
+    const [publisherOptions, setPublisherOptions] = useState<string[]>([]);
     const [platformOptions, setPlatformOptions] = useState<string[]>([]);
     const [genreOptions, setGenreOptions] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([]);
+    const [statusOptions, setStatusOptions] = useState<string[]>([]);
+    const [catalogOptions, setCatalogOptions] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [showAddGame, setShowAddGame] = useState(false);
     const [search, setSearch] = useState('');
@@ -57,13 +65,21 @@ export default function GameManager({ games, onGamesChange }: Props) {
     useEffect(() => {
         setLoading(true);
         Promise.all([
+            fetch('/developers').then(r => r.json()),
+            fetch('/publishers').then(r => r.json()),
             fetch('/platforms').then(r => r.json()),
             fetch('/genres').then(r => r.json()),
-            fetch('/tags').then(r => r.json())
-        ]).then(([platforms, genres, tags]) => {
+            fetch('/tags').then(r => r.json()),
+            fetch('/statuses').then(r => r.json()),
+            fetch('/catalogs').then(r => r.json())
+        ]).then(([developers, publishers, platforms, genres, tags, statuses, catalogs]) => {
+            setDeveloperOptions((developers as Option[]).map(d => typeof d === "string" ? d : d.name));
+            setPublisherOptions((publishers as Option[]).map(p => typeof p === "string" ? p : p.name));
             setPlatformOptions((platforms as Option[]).map(p => typeof p === "string" ? p : p.name));
             setGenreOptions((genres as Option[]).map(g => typeof g === "string" ? g : g.name));
             setTagOptions((tags as Option[]).map(t => typeof t === "string" ? t : t.name));
+            setStatusOptions((statuses as Option[]).map(s => typeof s === "string" ? s : s.name));
+            setCatalogOptions((catalogs as Option[]).map(c => typeof c === "string" ? c : c.name));
         }).finally(() => setLoading(false));
     }, []);
 
@@ -106,18 +122,26 @@ export default function GameManager({ games, onGamesChange }: Props) {
     // For grid, keep arrays for platforms/genres/tags
     const gridRows = games.map(game => ({
         ...game,
+        developers: Array.isArray(game.developers) ? game.developers : [],
+        publishers: Array.isArray(game.publishers) ? game.publishers : [],
         platforms: Array.isArray(game.platforms) ? game.platforms : [],
         genres: Array.isArray(game.genres) ? game.genres : [],
         tags: Array.isArray(game.tags) ? game.tags : [],
+        statuses: Array.isArray(game.statuses) ? game.statuses : [],
+        catalogs: Array.isArray(game.catalogs) ? game.catalogs : [],
         releaseDate: game.releaseDate ? new Date(game.releaseDate).toISOString().substring(0, 10) : '',
     }));
 
     // Filter gridRows by search
     const filteredRows = gridRows.filter(game =>
         game.title.toLowerCase().includes(search.toLowerCase()) ||
+        game.developers.some(d => d.toLowerCase().includes(search.toLowerCase())) ||
+        game.publishers.some(p => p.toLowerCase().includes(search.toLowerCase())) ||
         game.platforms.some(p => p.toLowerCase().includes(search.toLowerCase())) ||
         game.genres.some(g => g.toLowerCase().includes(search.toLowerCase())) ||
-        game.tags.some(t => t.toLowerCase().includes(search.toLowerCase()))
+        game.tags.some(t => t.toLowerCase().includes(search.toLowerCase())) ||
+        game.statuses.some(s => s.toLowerCase().includes(search.toLowerCase())) ||
+        game.catalogs.some(c => c.toLowerCase().includes(search.toLowerCase()))
     );
 
     const parseArray = (value: string | string[] | undefined): string[] =>
@@ -128,9 +152,13 @@ export default function GameManager({ games, onGamesChange }: Props) {
     const processRowUpdate = async (newRow: Game) => {
         const updatedRow: Game = {
             ...newRow,
+            developers: parseArray(newRow.developers),
+            publishers: parseArray(newRow.publishers),
             platforms: parseArray(newRow.platforms),
             genres: parseArray(newRow.genres),
             tags: parseArray(newRow.tags),
+            statuses: parseArray(newRow.statuses),
+            catalogs: parseArray(newRow.catalogs),
         };
         const response = await fetch(`games/${updatedRow.id}`, {
             method: 'PUT',
@@ -249,10 +277,34 @@ export default function GameManager({ games, onGamesChange }: Props) {
     const columns: GridColDef[] = [
         { field: 'title', headerName: 'Title', flex: 2, minWidth: 180, editable: true },
         {
+            field: 'developers',
+            headerName: 'Developers',
+            flex: 2,
+            minWidth: 120,
+            editable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params: GridRenderCellParams<Game, string[]>) =>
+                renderChipsCell(parseArray(params.value)),
+            renderEditCell: (params) => renderEditSelectCell(developerOptions, params),
+        },
+        {
+            field: 'publishers',
+            headerName: 'Publishers',
+            flex: 2,
+            minWidth: 120,
+            editable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params: GridRenderCellParams<Game, string[]>) =>
+                renderChipsCell(parseArray(params.value)),
+            renderEditCell: (params) => renderEditSelectCell(publisherOptions, params),
+        },
+        {
             field: 'platforms',
             headerName: 'Platforms',
             flex: 2,
-            minWidth: 180,
+            minWidth: 120,
             editable: true,
             align: 'center',
             headerAlign: 'center',
@@ -264,7 +316,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             field: 'genres',
             headerName: 'Genres',
             flex: 2,
-            minWidth: 180,
+            minWidth: 120,
             editable: true,
             align: 'center',
             headerAlign: 'center',
@@ -276,7 +328,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             field: 'tags',
             headerName: 'Tags',
             flex: 3,
-            minWidth: 220,
+            minWidth: 240,
             editable: true,
             align: 'center',
             headerAlign: 'center',
@@ -295,6 +347,18 @@ export default function GameManager({ games, onGamesChange }: Props) {
             renderEditCell: renderEditDateCell,
         },
         {
+            field: 'statuses',
+            headerName: 'Status',
+            flex: 3,
+            minWidth: 120,
+            editable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params: GridRenderCellParams<Game, string[]>) =>
+                renderChipsCell(parseArray(params.value)),
+            renderEditCell: (params) => renderEditSelectCell(statusOptions, params),
+        },
+        {
             field: 'userRating',
             headerName: 'User Rating',
             flex: 1,
@@ -304,6 +368,18 @@ export default function GameManager({ games, onGamesChange }: Props) {
             headerAlign: 'center',
             renderCell: renderRatingCell,
             renderEditCell: renderEditRatingCell,
+        },
+        {
+            field: 'catalogs',
+            headerName: 'Catalogs',
+            flex: 3,
+            minWidth: 120,
+            editable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params: GridRenderCellParams<Game, string[]>) =>
+                renderChipsCell(parseArray(params.value)),
+            renderEditCell: (params) => renderEditSelectCell(catalogOptions, params),
         },
         {
             field: 'actions',
@@ -340,7 +416,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             <TextField
                 value={search}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-                placeholder="Search games, platforms, genres, tags..."
+                placeholder="Search ..."
                 size="small"
                 fullWidth
                 sx={{
@@ -381,6 +457,56 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     sx={{ flex: '2 1 200px', minWidth: 180 }}
                                     disabled={loading}
                                 />
+                                <Select
+                                    multiple
+                                    name="developers"
+                                    value={form.developers || []}
+                                    onChange={e => handleSelectChange('developers', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
+                                    renderValue={(selected) => (
+                                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                            {(selected as string[]).map((value, idx) => (
+                                                <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
+                                            ))}
+                                        </Stack>
+                                    )}
+                                    size="small"
+                                    fullWidth
+                                    displayEmpty
+                                    sx={{ flex: '2 1 180px', minWidth: 180 }}
+                                    disabled={loading}
+                                >
+                                    {developerOptions.map(option => (
+                                        <MenuItem key={option} value={option}>
+                                            <Checkbox checked={(form.developers ?? []).indexOf(option) > -1} />
+                                            <ListItemText primary={option} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                <Select
+                                    multiple
+                                    name="publishers"
+                                    value={form.publishers || []}
+                                    onChange={e => handleSelectChange('publishers', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
+                                    renderValue={(selected) => (
+                                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                            {(selected as string[]).map((value, idx) => (
+                                                <Chip key={idx} label={value} size="small" sx={{ mb: 0.5 }} />
+                                            ))}
+                                        </Stack>
+                                    )}
+                                    size="small"
+                                    fullWidth
+                                    displayEmpty
+                                    sx={{ flex: '2 1 180px', minWidth: 180 }}
+                                    disabled={loading}
+                                >
+                                    {publisherOptions.map(option => (
+                                        <MenuItem key={option} value={option}>
+                                            <Checkbox checked={(form.publishers ?? []).indexOf(option) > -1} />
+                                            <ListItemText primary={option} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
                                 <Select
                                     multiple
                                     name="platforms"
@@ -467,15 +593,6 @@ export default function GameManager({ games, onGamesChange }: Props) {
                                     fullWidth
                                     slotProps={{ inputLabel: { shrink: true } }}
                                     sx={{ flex: '1 1 120px', minWidth: 120 }}
-                                    disabled={loading}
-                                />
-                                <Rating
-                                    name="userRating"
-                                    value={form.userRating ?? null}
-                                    onChange={(_, value) => setForm({ ...form, userRating: value ?? undefined })}
-                                    max={10}
-                                    size="medium"
-                                    sx={{ flex: '1 1 120px', minWidth: 120, alignSelf: 'center', mt: 1 }}
                                     disabled={loading}
                                 />
                                 <Button
