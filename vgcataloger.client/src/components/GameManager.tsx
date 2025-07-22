@@ -275,12 +275,12 @@ export default function GameManager({ games, onGamesChange }: Props) {
     }
 
     const columns: GridColDef[] = [
-        { field: 'title', headerName: 'Title', flex: 2, minWidth: 180, editable: true },
+        { field: 'title', headerName: 'Title', flex: 3, minWidth: 240, editable: true },
         {
             field: 'developers',
             headerName: 'Developers',
             flex: 2,
-            minWidth: 120,
+            minWidth: 180,
             editable: true,
             align: 'center',
             headerAlign: 'center',
@@ -292,7 +292,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             field: 'publishers',
             headerName: 'Publishers',
             flex: 2,
-            minWidth: 120,
+            minWidth: 180,
             editable: true,
             align: 'center',
             headerAlign: 'center',
@@ -303,7 +303,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
         {
             field: 'platforms',
             headerName: 'Platforms',
-            flex: 2,
+            flex: 1,
             minWidth: 120,
             editable: true,
             align: 'center',
@@ -316,7 +316,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
             field: 'genres',
             headerName: 'Genres',
             flex: 2,
-            minWidth: 120,
+            minWidth: 180,
             editable: true,
             align: 'center',
             headerAlign: 'center',
@@ -349,7 +349,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
         {
             field: 'statuses',
             headerName: 'Status',
-            flex: 3,
+            flex: 1,
             minWidth: 120,
             editable: true,
             align: 'center',
@@ -372,7 +372,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
         {
             field: 'catalogs',
             headerName: 'Catalogs',
-            flex: 3,
+            flex: 1,
             minWidth: 120,
             editable: true,
             align: 'center',
@@ -384,6 +384,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
         {
             field: 'actions',
             headerName: 'Actions',
+            flex: 1,
             minWidth: 60,
             sortable: false,
             filterable: false,
@@ -403,7 +404,7 @@ export default function GameManager({ games, onGamesChange }: Props) {
     ];
 
     return (
-        <Box sx={{ maxWidth: 1920, minWidth: 1400, mx: 'auto', mt: 4 }}>
+        <Box sx={{ mx: 'auto', mt: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                 <Button
                     variant="contained"
