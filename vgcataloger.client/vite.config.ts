@@ -78,6 +78,10 @@ export default defineConfig({
             '^/statuses': {
                 target,
                 secure: false
+            },
+            '^/steam/applist': {
+                target,
+                secure: false
             }
         },
         port: parseInt(env.DEV_SERVER_PORT || '57566'),

@@ -36,8 +36,37 @@ public class SteamStartupService : IHostedService
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync(cancellationToken);
-                _cache.Set("SteamAppList", json, TimeSpan.FromHours(12));
-                _logger.LogInformation("Steam App List cached successfully.");
+
+                // Parse and deduplicate
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
+                var apps = root.GetProperty("applist").GetProperty("apps");
+
+                var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var dedupedApps = new List<System.Text.Json.JsonElement>();
+
+                foreach (var app in apps.EnumerateArray())
+                {
+                    string name = app.GetProperty("name").GetString() ?? "";
+                    if (seenNames.Add(name))
+                    {
+                        dedupedApps.Add(app);
+                    }
+                }
+
+                // Build new JSON structure
+                var result = new
+                {
+                    applist = new
+                    {
+                        apps = dedupedApps
+                    }
+                };
+
+                string dedupedJson = System.Text.Json.JsonSerializer.Serialize(result);
+
+                _cache.Set("SteamAppList", dedupedJson, TimeSpan.FromHours(12));
+                _logger.LogInformation("Steam App List cached successfully (deduplicated).");
             }
             else
             {

@@ -16,6 +16,7 @@ import {
     Chip,
     Stack,
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
 import Rating from '@mui/material/Rating';
 
@@ -45,6 +46,11 @@ interface Props {
     onGamesChange: (games: Game[]) => void;
 }
 
+interface SteamApp {
+    appid: number;
+    name: string;
+}
+
 export default function GameManager({ games, onGamesChange }: Props) {
     const [form, setForm] = useState<Partial<Game>>({});
     const [developerOptions, setDeveloperOptions] = useState<string[]>([]);
@@ -57,6 +63,8 @@ export default function GameManager({ games, onGamesChange }: Props) {
     const [loading, setLoading] = useState(false);
     const [showAddGame, setShowAddGame] = useState(false);
     const [search, setSearch] = useState('');
+    const [steamAppOptions, setSteamAppOptions] = useState<string[]>([]);
+    const [appSearch, setAppSearch] = useState('');
 
     const apiRef = useGridApiRef();
 
@@ -83,6 +91,19 @@ export default function GameManager({ games, onGamesChange }: Props) {
         }).finally(() => setLoading(false));
     }, []);
 
+    useEffect(() => {
+        if (appSearch.length < 2) {
+            setSteamAppOptions([]);
+            return;
+        }
+        const controller = new AbortController();
+        fetch(`/steam/applist?search=${encodeURIComponent(appSearch)}`, { signal: controller.signal })
+            .then(r => r.json())
+            .then((data: SteamApp[]) => setSteamAppOptions(data.map((a) => a.name)))
+            .catch(() => { });
+        return () => controller.abort();
+    }, [appSearch]);
+
     const refreshGames = async () => {
         const response = await fetch('games');
         if (response.ok) {
@@ -101,10 +122,22 @@ export default function GameManager({ games, onGamesChange }: Props) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const completeForm = {
+            title: form.title ?? "",
+            releaseDate: form.releaseDate ?? "",
+            developers: form.developers ?? [],
+            publishers: form.publishers ?? [],
+            platforms: form.platforms ?? [],
+            genres: form.genres ?? [],
+            tags: form.tags ?? [],
+            statuses: form.statuses ?? [],
+            catalogs: form.catalogs ?? [],
+            userRating: form.userRating ?? null
+        };
         const response = await fetch('games', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form),
+            body: JSON.stringify(completeForm),
         });
         if (response.ok) {
             await refreshGames();
@@ -422,16 +455,27 @@ export default function GameManager({ games, onGamesChange }: Props) {
                         </Typography>
                         <form onSubmit={handleSubmit}>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-                                <TextField
-                                    name="title"
-                                    label="Title"
-                                    value={form.title || ''}
-                                    onChange={handleChange}
-                                    required
-                                    size="small"
-                                    fullWidth
-                                    sx={{ flex: '2 1 200px', minWidth: 180 }}
-                                    disabled={loading}
+                                <Autocomplete
+                                    freeSolo
+                                    options={steamAppOptions}
+                                    inputValue={form.title || ''}
+                                    onInputChange={(_, value) => {
+                                        setForm({ ...form, title: value });
+                                        setAppSearch(value);
+                                    }}
+                                    loading={loading}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            name="title"
+                                            label="Title"
+                                            required
+                                            size="small"
+                                            fullWidth
+                                            sx={{ flex: '2 1 200px', minWidth: 180 }}
+                                            disabled={loading}
+                                        />
+                                    )}
                                 />
                                 <Select
                                     multiple
