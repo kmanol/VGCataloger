@@ -414,33 +414,8 @@ export default function GameManager({ games, onGamesChange }: Props) {
                     {showAddGame ? "Close Add Game" : "Add Game"}
                 </Button>
             </Box>
-            <TextField
-                value={search}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-                placeholder="Search ..."
-                size="small"
-                fullWidth
-                sx={{
-                    mb: 2,
-                    borderRadius: 1,
-                    boxShadow: 1,
-                    backgroundColor: '#fff',
-                    '& .MuiInputBase-root': {
-                        backgroundColor: '#fff',
-                        borderRadius: 1,
-                    },
-                    '& .MuiInputBase-input': {
-                        color: '#222',
-                    },
-                }}
-            />
-            {loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                    <CircularProgress />
-                </Box>
-            )}
             {showAddGame && (
-                <Card sx={{ mb: 3, maxWidth: 1200, mx: "auto" }}>
+                <Card sx={{ mb: 3, mx: "auto" }}>
                     <CardContent>
                         <Typography variant="h6" gutterBottom align="center">
                             Add Game
@@ -608,6 +583,31 @@ export default function GameManager({ games, onGamesChange }: Props) {
                         </form>
                     </CardContent>
                 </Card>
+            )}
+            <TextField
+                value={search}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+                placeholder="Search ..."
+                size="small"
+                fullWidth
+                sx={{
+                    mb: 2,
+                    borderRadius: 1,
+                    boxShadow: 1,
+                    backgroundColor: '#fff',
+                    '& .MuiInputBase-root': {
+                        backgroundColor: '#fff',
+                        borderRadius: 1,
+                    },
+                    '& .MuiInputBase-input': {
+                        color: '#222',
+                    },
+                }}
+            />
+            {loading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                    <CircularProgress />
+                </Box>
             )}
             <DataGrid
                 apiRef={apiRef}
