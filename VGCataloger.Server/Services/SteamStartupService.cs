@@ -26,7 +26,7 @@ public class SteamStartupService : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         string baseUrl = _configuration["Steam:BaseUrl"] ?? "https://api.steampowered.com";
-        string apiKey = _configuration["Steam:ApiKey"];
+        string? apiKey = _configuration["Steam:ApiKey"];
         
         if (string.IsNullOrEmpty(apiKey))
         {

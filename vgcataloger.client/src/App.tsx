@@ -13,8 +13,8 @@ interface Game {
     genres: string[];
     tags: string[];
     releaseDate: string; // ISO string from JSON;
-    status: string;
-    userRating: number; // 0-5
+    statuses: string[];
+    userRating?: number; // 0-5
     catalogs: string[];
 }
 

@@ -35,9 +35,12 @@ public class SteamController : ControllerBase
 
             var matches = appsElem.EnumerateArray()
                 .Where(app =>
-                    app.TryGetProperty("name", out var nameProp) &&
-                    nameProp.GetString() != null &&
-                    nameProp.GetString().Contains(search, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!app.TryGetProperty("name", out var nameProp))
+                        return false;
+                    var name = nameProp.GetString();
+                    return name != null && name.Contains(search, StringComparison.OrdinalIgnoreCase);
+                })
                 .Take(50)
                 .Select(app => app.GetRawText());
 
@@ -46,8 +49,7 @@ public class SteamController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Optionally log ex.ToString() here
-            return StatusCode(500, "Failed to parse Steam app list.");
+            return StatusCode(500, "Failed to parse Steam app list. " + ex.Message);
         }
     }
 }
