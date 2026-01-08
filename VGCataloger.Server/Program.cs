@@ -9,6 +9,13 @@ namespace VGCataloger.Server
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Load local appsettings if it exists
+            var localSettingsPath = Path.Combine(builder.Environment.ContentRootPath, "appsettings.local.json");
+            if (File.Exists(localSettingsPath))
+            {
+                builder.Configuration.AddJsonFile(localSettingsPath, optional: false, reloadOnChange: true);
+            }
+
             // Add services to the container.
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddControllers();

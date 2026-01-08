@@ -25,8 +25,9 @@ public class SteamController : ControllerBase
         try
         {
             using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("applist", out var applistElem) ||
-                !applistElem.TryGetProperty("apps", out var appsElem) ||
+            // Cache now stores IStoreService response shape: { response: { apps: [...] } }
+            if (!doc.RootElement.TryGetProperty("response", out var responseElem) ||
+                !responseElem.TryGetProperty("apps", out var appsElem) ||
                 appsElem.ValueKind != JsonValueKind.Array)
             {
                 return Ok(new { apps = Array.Empty<object>() });

@@ -26,7 +26,15 @@ public class SteamStartupService : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         string baseUrl = _configuration["Steam:BaseUrl"] ?? "https://api.steampowered.com";
-        string url = $"{baseUrl.TrimEnd('/')}/ISteamApps/GetAppList/v2/";
+        string apiKey = _configuration["Steam:ApiKey"];
+        
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            _logger.LogWarning("Steam API Key not configured. Skipping Steam App List cache.");
+            return;
+        }
+
+        string url = $"{baseUrl.TrimEnd('/')}/IStoreService/GetAppList/v1/?key={apiKey}&input_json={{}}";
 
         using HttpClient client = new HttpClient();
         try
@@ -40,33 +48,41 @@ public class SteamStartupService : IHostedService
                 // Parse and deduplicate
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 var root = doc.RootElement;
-                var apps = root.GetProperty("applist").GetProperty("apps");
-
-                var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var dedupedApps = new List<System.Text.Json.JsonElement>();
-
-                foreach (var app in apps.EnumerateArray())
+                
+                // IStoreService returns apps directly in the response
+                if (root.TryGetProperty("response", out var responseElement) &&
+                    responseElement.TryGetProperty("apps", out var apps))
                 {
-                    string name = app.GetProperty("name").GetString() ?? "";
-                    if (seenNames.Add(name))
+                    var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var dedupedApps = new List<System.Text.Json.JsonElement>();
+
+                    foreach (var app in apps.EnumerateArray())
                     {
-                        dedupedApps.Add(app);
+                        string name = app.GetProperty("name").GetString() ?? "";
+                        if (seenNames.Add(name))
+                        {
+                            dedupedApps.Add(app);
+                        }
                     }
+
+                    // Build new JSON structure
+                    var result = new
+                    {
+                        response = new
+                        {
+                            apps = dedupedApps
+                        }
+                    };
+
+                    string dedupedJson = System.Text.Json.JsonSerializer.Serialize(result);
+
+                    _cache.Set("SteamAppList", dedupedJson, TimeSpan.FromHours(12));
+                    _logger.LogInformation("Steam App List cached successfully (deduplicated).");
                 }
-
-                // Build new JSON structure
-                var result = new
+                else
                 {
-                    applist = new
-                    {
-                        apps = dedupedApps
-                    }
-                };
-
-                string dedupedJson = System.Text.Json.JsonSerializer.Serialize(result);
-
-                _cache.Set("SteamAppList", dedupedJson, TimeSpan.FromHours(12));
-                _logger.LogInformation("Steam App List cached successfully (deduplicated).");
+                    _logger.LogError("Unexpected response structure from Steam API.");
+                }
             }
             else
             {

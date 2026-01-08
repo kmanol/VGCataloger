@@ -66,6 +66,9 @@ artifacts/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
+# Local settings (secrets)
+appsettings.local.json
+
 # StyleCop
 StyleCopReport.xml
 
@@ -361,4 +364,3 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/VGCataloger.Server/appsettings.Development.json
