@@ -10,22 +10,6 @@ th, td {
     padding-right: 1rem;
 }
 
-nav {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-nav a {
-    margin: 0 10px;
-    text-decoration: none;
-    color: var(--primary);
-    font-weight: bold;
-}
-
-nav a:hover {
-    text-decoration: underline;
-}
-
 .app-header {
     display: flex;
     align-items: center;
@@ -34,7 +18,46 @@ nav a:hover {
     margin-bottom: 20px;
 }
 
+.view-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+}
+
+.toggle-option {
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 700;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.toggle-option:hover {
+    background: var(--surface-muted);
+    color: var(--text);
+}
+
+.toggle-option.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.toggle-option:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
 .theme-toggle {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1000;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, NavLink, Route, Routes } from 'react-router-dom';
 import GameManager from './components/GameManager';
 import LovManager from './components/LovManager';
 import './App.css';
@@ -41,8 +41,20 @@ function App() {
     return (
         <Router>
             <div className="app-header">
-                <nav>
-                    <Link to="/">Games</Link> | <Link to="/manage-lov">Manage</Link>
+                <nav className="view-toggle" aria-label="View selector">
+                    <NavLink
+                        to="/"
+                        end
+                        className={({ isActive }) => `toggle-option${isActive ? ' active' : ''}`}
+                    >
+                        Games
+                    </NavLink>
+                    <NavLink
+                        to="/manage-lov"
+                        className={({ isActive }) => `toggle-option${isActive ? ' active' : ''}`}
+                    >
+                        Manage
+                    </NavLink>
                 </nav>
                 <button
                     className="theme-toggle"
