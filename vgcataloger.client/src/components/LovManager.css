@@ -1,0 +1,130 @@
+/* LovManager.css */
+
+.lov-manager-container {
+  max-width: 600px;
+  margin: 0 auto;
+  margin-top: 20px;
+  color: var(--text);
+}
+
+.lov-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  background-color: var(--surface);
+}
+
+.lov-card h3 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.lov-select {
+  min-width: 160px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 4px;
+}
+
+.lov-search {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 4px;
+}
+
+.lov-list {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.lov-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+}
+
+.lov-item span {
+  flex: 1;
+}
+
+.lov-input {
+  flex: 1;
+  margin-right: 10px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 4px;
+}
+
+.lov-button {
+  background-color: var(--success);
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.lov-button:hover {
+  background-color: var(--success-hover);
+}
+
+.lov-button.edit {
+  background-color: var(--primary);
+  margin-right: 5px;
+}
+
+.lov-button.edit:hover {
+  background-color: var(--primary-hover);
+}
+
+.lov-button.delete {
+  background-color: var(--danger);
+}
+
+.lov-button.delete:hover {
+  background-color: var(--danger-hover);
+}
+
+.lov-button.save {
+  background-color: var(--success);
+  margin-right: 5px;
+}
+
+.lov-button.save:hover {
+  background-color: var(--success-hover);
+}
+
+.lov-button.cancel {
+  background-color: var(--neutral);
+}
+
+.lov-button.cancel:hover {
+  background-color: var(--neutral-hover);
+}
+
+.lov-add-row {
+  display: flex;
+  align-items: center;
+  padding-top: 10px;
+}
+
+.lov-add-input {
+  flex: 1;
+  margin-right: 10px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 4px;
+}

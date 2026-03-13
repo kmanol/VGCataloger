@@ -20,10 +20,15 @@ interface Game {
 
 function App() {
     const [games, setGames] = useState<Game[]>();
+    const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
         populateGamesData();
     }, []);
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
 
     async function populateGamesData() {
         const response = await fetch('games');
@@ -35,9 +40,17 @@ function App() {
 
     return (
         <Router>
-            <nav>
-                <Link to="/">Games</Link> | <Link to="/manage-lov">Manage</Link>
-            </nav>
+            <div className="app-header">
+                <nav>
+                    <Link to="/">Games</Link> | <Link to="/manage-lov">Manage</Link>
+                </nav>
+                <button
+                    className="theme-toggle"
+                    onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+                >
+                    Theme: {theme === 'light' ? 'Light' : 'Dark'}
+                </button>
+            </div>
             <Routes>
                 <Route
                     path="/"

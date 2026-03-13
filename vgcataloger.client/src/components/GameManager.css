@@ -1,0 +1,152 @@
+/* GameManager.css */
+
+.game-manager-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-top: 20px;
+  color: var(--text);
+}
+
+.add-game-button {
+  padding: 10px 20px;
+  background-color: var(--primary);
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-game-button:hover {
+  background-color: var(--primary-hover);
+}
+
+.add-game-button.secondary {
+  background-color: var(--danger);
+}
+
+.add-game-button.secondary:hover {
+  background-color: var(--danger-hover);
+}
+
+.add-game-form {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: var(--surface);
+}
+
+.add-game-form h3 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.form-input {
+  flex: 2 1 200px;
+  min-width: 180px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 4px;
+}
+
+.form-select {
+  flex: 2 1 180px;
+  min-width: 180px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 4px;
+}
+
+.form-select-sm {
+  flex: 1 1 120px;
+  min-width: 120px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 4px;
+}
+
+.form-button {
+  flex: 0 1 100px;
+  min-width: 100px;
+  padding: 10px;
+  background-color: var(--success);
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-button:hover {
+  background-color: var(--success-hover);
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.game-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.game-table th {
+  padding: 10px;
+  border: 1px solid var(--border);
+  background-color: var(--surface-muted);
+}
+
+.game-table td {
+  padding: 10px;
+  border: 1px solid var(--border);
+}
+
+.chip {
+  display: inline-block;
+  background-color: var(--chip-bg);
+  color: var(--chip-text);
+  padding: 2px 6px;
+  margin: 2px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.delete-button {
+  background-color: var(--danger);
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: var(--danger-hover);
+}

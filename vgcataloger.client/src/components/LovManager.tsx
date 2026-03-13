@@ -1,20 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import {
-    Box,
-    Card,
-    CardContent,
-    Typography,
-    Select,
-    MenuItem,
-    TextField,
-    Button,
-    IconButton,
-    Stack,
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
+import './LovManager.css';
 
 type LovType = 'catalogs' | 'platforms' | 'genres' | 'tags' | 'developers' | 'publishers' | 'statuses';
 
@@ -86,120 +71,99 @@ export default function LovManager() {
     );
 
     return (
-        <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
-            <Card>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom align="center">
-                        Manage {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </Typography>
-                    <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
-                        <Select
-                            value={type}
-                            onChange={e => setType(e.target.value as LovType)}
-                            size="small"
-                            sx={{ minWidth: 160 }}
-                        >
-                            <MenuItem value="catalogs">Catalogs</MenuItem>
-                            <MenuItem value="platforms">Platforms</MenuItem>
-                            <MenuItem value="genres">Genres</MenuItem>
-                            <MenuItem value="tags">Tags</MenuItem>
-                            <MenuItem value="developers">Developers</MenuItem>
-                            <MenuItem value="publishers">Publishers</MenuItem>
-                            <MenuItem value="statuses">Statuses</MenuItem>
-                        </Select>
-                    </Box>
-                    <TextField
-                        value={search}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-                        placeholder="Search..."
-                        size="small"
-                        fullWidth
-                        sx={{ mb: 2 }}
+        <div className="lov-manager-container">
+            <div className="lov-card">
+                <h3>Manage {type.charAt(0).toUpperCase() + type.slice(1)}</h3>
+                <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center' }}>
+                    <select
+                        value={type}
+                        onChange={e => setType(e.target.value as LovType)}
+                        className="lov-select"
+                    >
+                        <option value="catalogs">Catalogs</option>
+                        <option value="platforms">Platforms</option>
+                        <option value="genres">Genres</option>
+                        <option value="tags">Tags</option>
+                        <option value="developers">Developers</option>
+                        <option value="publishers">Publishers</option>
+                        <option value="statuses">Statuses</option>
+                    </select>
+                </div>
+                <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search..."
+                    className="lov-search"
+                />
+                <div className="lov-list">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        {filteredItems.map(item => (
+                            <div
+                                key={item.id}
+                                className="lov-item"
+                            >
+                                {editingId === item.id ? (
+                                    <>
+                                        <input
+                                            value={editingName}
+                                            onChange={(e) => setEditingName(e.target.value)}
+                                            className="lov-input"
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') handleEditSave(item.id);
+                                                if (e.key === 'Escape') setEditingId(null);
+                                            }}
+                                            autoFocus
+                                        />
+                                        <button
+                                            className="lov-button save"
+                                            onClick={() => handleEditSave(item.id)}
+                                        >
+                                            Save
+                                        </button>
+                                        <button
+                                            className="lov-button cancel"
+                                            onClick={() => setEditingId(null)}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>{item.name}</span>
+                                        <button
+                                            className="lov-button edit"
+                                            onClick={() => handleEdit(item)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="lov-button delete"
+                                            onClick={() => handleDelete(item.id)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="lov-add-row">
+                    <input
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder={`Add new ${type.slice(0, -1)}`}
+                        className="lov-add-input"
+                        onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
                     />
-                    <Box sx={{ maxHeight: 400, overflowY: 'auto', mb: 2 }}>
-                        <Stack spacing={1}>
-                            {filteredItems.map(item => (
-                                <Box
-                                    key={item.id}
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        borderBottom: '1px solid #eee',
-                                        py: 1,
-                                    }}
-                                >
-                                    {editingId === item.id ? (
-                                        <>
-                                            <TextField
-                                                value={editingName}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingName(e.target.value)}
-                                                size="small"
-                                                sx={{ flex: 1, mr: 1 }}
-                                                onKeyDown={e => {
-                                                    if (e.key === 'Enter') handleEditSave(item.id);
-                                                    if (e.key === 'Escape') setEditingId(null);
-                                                }}
-                                                autoFocus
-                                            />
-                                            <IconButton
-                                                color="primary"
-                                                size="small"
-                                                onClick={() => handleEditSave(item.id)}
-                                            >
-                                                <SaveIcon />
-                                            </IconButton>
-                                            <IconButton
-                                                color="inherit"
-                                                size="small"
-                                                onClick={() => setEditingId(null)}
-                                            >
-                                                <CancelIcon />
-                                            </IconButton>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Typography sx={{ flex: 1 }}>{item.name}</Typography>
-                                            <IconButton
-                                                color="primary"
-                                                size="small"
-                                                onClick={() => handleEdit(item)}
-                                            >
-                                                <EditIcon />
-                                            </IconButton>
-                                            <IconButton
-                                                color="error"
-                                                size="small"
-                                                onClick={() => handleDelete(item.id)}
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </>
-                                    )}
-                                </Box>
-                            ))}
-                        </Stack>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', pt: 1 }}>
-                        <TextField
-                            value={newName}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
-                            placeholder={`Add new ${type.slice(0, -1)}`}
-                            size="small"
-                            sx={{ flex: 1, mr: 1 }}
-                            onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
-                        />
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            size="small"
-                            onClick={handleAdd}
-                            sx={{ minWidth: 80, height: 36 }}
-                        >
-                            Add
-                        </Button>
-                    </Box>
-                </CardContent>
-            </Card>
-        </Box>
+                    <button
+                        className="lov-button"
+                        onClick={handleAdd}
+                    >
+                        Add
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }
