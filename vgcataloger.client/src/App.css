@@ -54,10 +54,6 @@ th, td {
 }
 
 .theme-toggle {
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 1000;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);

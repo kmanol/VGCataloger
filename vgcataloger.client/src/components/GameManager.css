@@ -8,6 +8,12 @@
   color: var(--text);
 }
 
+.game-manager-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
 .add-game-button {
   padding: 10px 20px;
   background-color: var(--primary);
@@ -31,27 +37,84 @@
 
 .add-game-form {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 20px;
   background-color: var(--surface);
+  box-shadow: var(--shadow);
 }
 
-.add-game-form h3 {
-  text-align: center;
+.form-header {
   margin-bottom: 20px;
+  text-align: left;
 }
 
-.form-row {
+.form-header h3 {
+  margin: 0 0 6px;
+}
+
+.form-header p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.game-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-section {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--surface-muted);
+}
+
+.form-section h4 {
+  margin: 0 0 14px;
+  text-align: left;
+}
+
+.form-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+  gap: 14px;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  position: relative;
+}
+
+.field--wide {
+  flex: 2 1 260px;
+}
+
+.field--small {
+  flex: 1 1 180px;
+}
+
+.field-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: left;
+}
+
+.field-help {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-align: left;
 }
 
 .form-input {
-  flex: 2 1 200px;
-  min-width: 180px;
+  width: 100%;
   padding: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -59,28 +122,125 @@
   border-radius: 4px;
 }
 
-.form-select {
-  flex: 2 1 180px;
-  min-width: 180px;
-  padding: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  border-radius: 4px;
+.form-input:focus,
+.multi-select-search:focus,
+.multi-select-trigger:focus,
+.autocomplete-option:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
-.form-select-sm {
-  flex: 1 1 120px;
-  min-width: 120px;
-  padding: 8px;
+.autocomplete-panel,
+.multi-select-panel {
+  top: 100%;
+  margin-top: 2px;
   border: 1px solid var(--border);
   background: var(--surface);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  text-align: left;
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+}
+
+.autocomplete-option,
+.multi-select-option {
+  width: 100%;
+  border: 0;
+  background: transparent;
   color: var(--text);
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.autocomplete-option:hover,
+.multi-select-option:hover,
+.multi-select-option.selected {
+  background: var(--surface-muted);
+}
+
+.autocomplete-state,
+.multi-select-empty {
+  padding: 12px;
+  color: var(--text-muted);
+}
+
+.multi-select {
+  position: relative;
+}
+
+.multi-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.multi-select-value {
+  color: var(--text);
+}
+
+.multi-select-placeholder {
+  color: var(--text-muted);
+}
+
+.multi-select-caret {
+  color: var(--text-muted);
+}
+
+.multi-select-search {
+  width: calc(100% - 20px);
+  margin: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.multi-select-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.multi-select-check {
+  width: 18px;
+  display: inline-flex;
+  justify-content: center;
+  color: var(--success);
+  font-weight: 700;
+}
+
+.selected-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chip-button {
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.chip-more {
+  background: var(--surface-muted);
 }
 
 .form-button {
-  flex: 0 1 100px;
   min-width: 100px;
   padding: 10px;
   background-color: var(--success);
@@ -94,10 +254,59 @@
   background-color: var(--success-hover);
 }
 
+.form-button-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.form-button-secondary:hover {
+  background: var(--surface-muted);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rating-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rating-star {
+  border: 0;
+  background: transparent;
+  color: var(--border);
+  font-size: 1.3rem;
+  padding: 0;
+}
+
+.rating-star.active {
+  color: #f5b301;
+}
+
+.rating-clear {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.search-toolbar {
+  margin-bottom: 12px;
+  text-align: left;
+}
+
 .search-input {
   width: 100%;
   padding: 10px;
-  margin-bottom: 10px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
@@ -111,10 +320,34 @@
   margin: 20px 0;
 }
 
+.empty-state {
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  padding: 32px 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.empty-state h4 {
+  margin: 0 0 8px;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
 .game-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid var(--border);
   background: var(--surface);
 }
 
@@ -122,11 +355,19 @@
   padding: 10px;
   border: 1px solid var(--border);
   background-color: var(--surface-muted);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .game-table td {
   padding: 10px;
   border: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.game-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface-muted) 45%, transparent);
 }
 
 .chip {
@@ -137,6 +378,18 @@
   margin: 2px;
   border-radius: 4px;
   font-size: 12px;
+}
+
+.muted-copy {
+  color: var(--text-muted);
+}
+
+.rating-display {
+  white-space: nowrap;
+}
+
+.table-actions {
+  text-align: center;
 }
 
 .delete-button {
@@ -150,4 +403,24 @@
 
 .delete-button:hover {
   background-color: var(--danger-hover);
+}
+
+@media (max-width: 900px) {
+  .form-grid {
+    flex-direction: column;
+  }
+
+  .field--wide,
+  .field--small {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions .form-button {
+    flex: 1 1 auto;
+  }
 }
