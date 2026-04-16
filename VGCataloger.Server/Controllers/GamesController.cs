@@ -1,61 +1,55 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using VGCataloger.Server.DTOs;
 using VGCataloger.Server.Services;
 
-namespace VGCataloger.Server.Controllers
+namespace VGCataloger.Server.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class GamesController(IGamesService games, ILogger<GamesController> logger) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class GamesController : ControllerBase
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<GameDto>>> Get(
+        [FromQuery][Range(1, int.MaxValue)] int page = 1,
+        [FromQuery][Range(1, 200)] int pageSize = 25,
+        [FromQuery] string? search = null,
+        [FromQuery] string? platform = null,
+        [FromQuery] string? genre = null,
+        [FromQuery] string? status = null,
+        [FromQuery] string? catalog = null,
+        [FromQuery] int? minRating = null)
     {
-        private readonly IGamesService _games;
-
-        public GamesController(IGamesService games)
+        try
         {
-            _games = games;
+            var result = await games.GetGamesAsync(new GamesQuery(page, pageSize, search, platform, genre, status, catalog, minRating));
+            return Ok(result);
         }
-
-        [HttpGet]
-        public async Task<ActionResult<PagedResult<GameDto>>> Get(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 25,
-            [FromQuery] string? search = null,
-            [FromQuery] string? platform = null,
-            [FromQuery] string? genre = null,
-            [FromQuery] string? status = null,
-            [FromQuery] string? catalog = null,
-            [FromQuery] int? minRating = null)
+        catch (Exception ex)
         {
-            try
-            {
-                var result = await _games.GetGamesAsync(new GamesQuery(page, pageSize, search, platform, genre, status, catalog, minRating));
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.ToString());
-            }
+            logger.LogError(ex, "Failed to retrieve games");
+            return Problem("An error occurred while retrieving games.");
         }
+    }
 
-        [HttpPost]
-        public async Task<ActionResult<GameDto>> Post(GameDto dto)
-        {
-            var result = await _games.CreateGameAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
-        }
+    [HttpPost]
+    public async Task<ActionResult<GameDto>> Post(GameDto dto)
+    {
+        var result = await games.CreateGameAsync(dto);
+        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+    }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, GameDto dto)
-        {
-            var found = await _games.UpdateGameAsync(id, dto);
-            return found ? NoContent() : NotFound();
-        }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(int id, GameDto dto)
+    {
+        var found = await games.UpdateGameAsync(id, dto);
+        return found ? NoContent() : NotFound();
+    }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var found = await _games.DeleteGameAsync(id);
-            return found ? NoContent() : NotFound();
-        }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var found = await games.DeleteGameAsync(id);
+        return found ? NoContent() : NotFound();
     }
 }

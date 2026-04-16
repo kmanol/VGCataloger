@@ -39,13 +39,6 @@ namespace VGCataloger.Server.Services
             var totalCount = await q.CountAsync();
 
             var items = await q
-                .Include(g => g.GameDevelopers).ThenInclude(gd => gd.Developer)
-                .Include(g => g.GamePublishers).ThenInclude(gp => gp.Publisher)
-                .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
-                .Include(g => g.GameGenres).ThenInclude(gg => gg.Genre)
-                .Include(g => g.GameTags).ThenInclude(gt => gt.Tag)
-                .Include(g => g.GameStatuses).ThenInclude(gs => gs.Status)
-                .Include(g => g.GameCatalogs).ThenInclude(gc => gc.Catalog)
                 .OrderBy(g => g.Title)
                 .Skip((query.Page - 1) * query.PageSize)
                 .Take(query.PageSize)

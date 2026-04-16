@@ -2,48 +2,23 @@ import { useEffect, useState } from 'react';
 import type { Game, SteamApp } from './types';
 import TitleAutocompleteField from './TitleAutocompleteField';
 import MultiSelectField from './MultiSelectField';
+import { useLovData } from './useLovData';
 
 interface Props {
     onGameAdded: (title: string) => void;
+    onError?: (message: string) => void;
     onClose: () => void;
 }
 
-type Option = { name: string } | string;
-
-export default function AddGameForm({ onGameAdded, onClose }: Props) {
+export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
     const [form, setForm] = useState<Partial<Game>>({ userRating: 0 });
-    const [developerOptions, setDeveloperOptions] = useState<string[]>([]);
-    const [publisherOptions, setPublisherOptions] = useState<string[]>([]);
-    const [platformOptions, setPlatformOptions] = useState<string[]>([]);
-    const [genreOptions, setGenreOptions] = useState<string[]>([]);
-    const [tagOptions, setTagOptions] = useState<string[]>([]);
-    const [statusOptions, setStatusOptions] = useState<string[]>([]);
-    const [catalogOptions, setCatalogOptions] = useState<string[]>([]);
-    const [metaLoading, setMetaLoading] = useState(false);
     const [steamAppOptions, setSteamAppOptions] = useState<SteamApp[]>([]);
     const [appSearch, setAppSearch] = useState('');
     const [steamLoading, setSteamLoading] = useState(false);
 
-    useEffect(() => {
-        setMetaLoading(true);
-        Promise.all([
-            fetch('/developers').then(r => r.json()),
-            fetch('/publishers').then(r => r.json()),
-            fetch('/platforms').then(r => r.json()),
-            fetch('/genres').then(r => r.json()),
-            fetch('/tags').then(r => r.json()),
-            fetch('/statuses').then(r => r.json()),
-            fetch('/catalogs').then(r => r.json()),
-        ]).then(([developers, publishers, platforms, genres, tags, statuses, catalogs]) => {
-            setDeveloperOptions((developers as Option[]).map(d => typeof d === 'string' ? d : d.name));
-            setPublisherOptions((publishers as Option[]).map(p => typeof p === 'string' ? p : p.name));
-            setPlatformOptions((platforms as Option[]).map(p => typeof p === 'string' ? p : p.name));
-            setGenreOptions((genres as Option[]).map(g => typeof g === 'string' ? g : g.name));
-            setTagOptions((tags as Option[]).map(t => typeof t === 'string' ? t : t.name));
-            setStatusOptions((statuses as Option[]).map(s => typeof s === 'string' ? s : s.name));
-            setCatalogOptions((catalogs as Option[]).map(c => typeof c === 'string' ? c : c.name));
-        }).finally(() => setMetaLoading(false));
-    }, []);
+    const { developers: developerOptions, publishers: publisherOptions, platforms: platformOptions,
+            genres: genreOptions, tags: tagOptions, statuses: statusOptions, catalogs: catalogOptions,
+            loading: metaLoading } = useLovData();
 
     useEffect(() => {
         if (appSearch.length < 2) {
@@ -58,7 +33,6 @@ export default function AddGameForm({ onGameAdded, onClose }: Props) {
         fetch(`/steam/applist?search=${encodeURIComponent(appSearch)}`, { signal: controller.signal })
             .then(r => r.json())
             .then((data: SteamApp[]) => setSteamAppOptions(data))
-            .catch(() => { })
             .finally(() => setSteamLoading(false));
 
         return () => controller.abort();
@@ -106,6 +80,8 @@ export default function AddGameForm({ onGameAdded, onClose }: Props) {
             onGameAdded(payload.title);
             resetForm();
             onClose();
+        } else {
+            onError?.(`Failed to add "${payload.title}"`);
         }
     };
 

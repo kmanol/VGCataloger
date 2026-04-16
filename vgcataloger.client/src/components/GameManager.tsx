@@ -5,14 +5,10 @@ import GamesTable from './GamesTable';
 import FilterBar, { type Filters } from './FilterBar';
 import ToastContainer from './ToastContainer';
 import { useToast } from './useToast';
+import { useLovData } from './useLovData';
 import './GameManager.css';
 
 const EMPTY_FILTERS: Filters = { platform: '', genre: '', status: '', catalog: '', minRating: 0 };
-
-type LovOption = { name: string } | string;
-function toNames(items: LovOption[]) {
-    return items.map(i => typeof i === 'string' ? i : i.name);
-}
 
 export default function GameManager() {
     const [games, setGames] = useState<Game[]>([]);
@@ -25,25 +21,12 @@ export default function GameManager() {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-    const [platformOptions, setPlatformOptions] = useState<string[]>([]);
-    const [genreOptions, setGenreOptions] = useState<string[]>([]);
-    const [statusOptions, setStatusOptions] = useState<string[]>([]);
-    const [catalogOptions, setCatalogOptions] = useState<string[]>([]);
 
-    // Fetch LOV options for filter dropdowns once on mount
+    const { platforms: platformOptions, genres: genreOptions, statuses: statusOptions, catalogs: catalogOptions, error: lovError } = useLovData();
+
     useEffect(() => {
-        Promise.all([
-            fetch('/platforms').then(r => r.json()),
-            fetch('/genres').then(r => r.json()),
-            fetch('/statuses').then(r => r.json()),
-            fetch('/catalogs').then(r => r.json()),
-        ]).then(([platforms, genres, statuses, catalogs]) => {
-            setPlatformOptions(toNames(platforms));
-            setGenreOptions(toNames(genres));
-            setStatusOptions(toNames(statuses));
-            setCatalogOptions(toNames(catalogs));
-        });
-    }, []);
+        if (lovError) showToast(lovError, 'error');
+    }, [lovError]);
 
     // Debounce search: reset to page 1 after 300ms idle
     useEffect(() => {
@@ -54,8 +37,7 @@ export default function GameManager() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    // Fetch games whenever page, debouncedSearch, or filters change
-    useEffect(() => {
+    const buildParams = () => {
         const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
         if (debouncedSearch) params.set('search', debouncedSearch);
         if (filters.platform) params.set('platform', filters.platform);
@@ -63,14 +45,22 @@ export default function GameManager() {
         if (filters.status) params.set('status', filters.status);
         if (filters.catalog) params.set('catalog', filters.catalog);
         if (filters.minRating > 0) params.set('minRating', String(filters.minRating));
+        return params;
+    };
 
+    // Fetch games whenever page, debouncedSearch, or filters change
+    useEffect(() => {
         setGamesLoading(true);
-        fetch(`games?${params}`)
-            .then(r => r.json())
+        fetch(`games?${buildParams()}`)
+            .then(r => {
+                if (!r.ok) throw new Error('Failed to load games');
+                return r.json();
+            })
             .then((data: PagedResult) => {
                 setGames(data.items);
                 setTotalCount(data.totalCount);
             })
+            .catch(() => showToast('Failed to load games', 'error'))
             .finally(() => setGamesLoading(false));
     }, [page, pageSize, debouncedSearch, filters]);
 
@@ -80,14 +70,7 @@ export default function GameManager() {
     };
 
     const refreshGames = async () => {
-        const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-        if (debouncedSearch) params.set('search', debouncedSearch);
-        if (filters.platform) params.set('platform', filters.platform);
-        if (filters.genre) params.set('genre', filters.genre);
-        if (filters.status) params.set('status', filters.status);
-        if (filters.catalog) params.set('catalog', filters.catalog);
-        if (filters.minRating > 0) params.set('minRating', String(filters.minRating));
-        const response = await fetch(`games?${params}`);
+        const response = await fetch(`games?${buildParams()}`);
         if (response.ok) {
             const data: PagedResult = await response.json();
             setGames(data.items);
@@ -137,6 +120,7 @@ export default function GameManager() {
                         await refreshGames();
                         showToast(`"${title}" added to catalog`);
                     }}
+                    onError={msg => showToast(msg, 'error')}
                     onClose={() => setShowAddGame(false)}
                 />
             )}
