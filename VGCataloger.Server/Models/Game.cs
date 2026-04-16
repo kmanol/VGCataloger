@@ -8,6 +8,7 @@ namespace VGCataloger.Server
         public string Title { get; set; } = string.Empty;
         public DateTime ReleaseDate { get; set; }
         public int? UserRating { get; set; }
+        public int? SteamAppId { get; set; }
 
         public ICollection<GameDeveloper> GameDevelopers { get; set; } = new List<GameDeveloper>();
         public ICollection<GamePublisher> GamePublishers { get; set; } = new List<GamePublisher>();

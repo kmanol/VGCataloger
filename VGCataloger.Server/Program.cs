@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VGCataloger.Server.Data;
+using VGCataloger.Server.Services;
 
 namespace VGCataloger.Server
 {
@@ -18,6 +19,7 @@ namespace VGCataloger.Server
 
             // Add services to the container.
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddScoped<IGamesService, GamesService>();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(); // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

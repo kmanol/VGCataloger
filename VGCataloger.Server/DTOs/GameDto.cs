@@ -11,4 +11,5 @@ public class GameDto
     public required List<string> Statuses { get; set; }
     public required List<string> Catalogs { get; set; }
     public int? UserRating { get; set; }
+    public int? SteamAppId { get; set; }
 }

@@ -4,39 +4,12 @@ import GameManager from './components/GameManager';
 import LovManager from './components/LovManager';
 import './App.css';
 
-interface Game {
-    id: number;
-    title: string;
-    developers: string[];
-    publishers: string[];
-    platforms: string[];
-    genres: string[];
-    tags: string[];
-    releaseDate: string; // ISO string from JSON;
-    statuses: string[];
-    userRating?: number; // 0-5
-    catalogs: string[];
-}
-
 function App() {
-    const [games, setGames] = useState<Game[]>();
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-    useEffect(() => {
-        populateGamesData();
-    }, []);
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
-
-    async function populateGamesData() {
-        const response = await fetch('games');
-        if (response.ok) {
-            const data = await response.json();
-            setGames(data);
-        }
-    }
 
     return (
         <Router>
@@ -64,14 +37,7 @@ function App() {
                 </button>
             </div>
             <Routes>
-                <Route
-                    path="/"
-                    element={
-                        games === undefined
-                            ? <p><em>Loading...</em></p>
-                            : <GameManager games={games} onGamesChange={setGames} />
-                    }
-                />
+                <Route path="/" element={<GameManager />} />
                 <Route path="/manage-lov" element={<LovManager />} />
             </Routes>
         </Router>
