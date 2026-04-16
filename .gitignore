@@ -3,6 +3,15 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# macOS
+.DS_Store
+
+# JetBrains IDEs
+.idea/
+
+# SQLite files
+*.sqlite
+
 # User-specific files
 *.rsuser
 *.suo
