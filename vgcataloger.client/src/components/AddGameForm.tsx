@@ -5,7 +5,9 @@ import MultiSelectField from './MultiSelectField';
 import { useLovData } from './useLovData';
 
 interface Props {
-    onGameAdded: (title: string) => void;
+    initialGame?: Game;
+    onGameAdded?: (title: string) => void;
+    onGameUpdated?: (title: string) => void;
     onError?: (message: string) => void;
     onClose: () => void;
 }
@@ -18,8 +20,13 @@ interface SteamAppDetails {
     tags: string[];
 }
 
-export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
-    const [form, setForm] = useState<Partial<Game>>({ userRating: 0 });
+export default function AddGameForm({ initialGame, onGameAdded, onGameUpdated, onError, onClose }: Props) {
+    const isEditing = !!initialGame;
+    const [form, setForm] = useState<Partial<Game>>(
+        initialGame
+            ? { ...initialGame, releaseDate: initialGame.releaseDate?.substring(0, 10) }
+            : { userRating: 0 }
+    );
     const [steamAppOptions, setSteamAppOptions] = useState<SteamApp[]>([]);
     const [appSearch, setAppSearch] = useState('');
     const [steamLoading, setSteamLoading] = useState(false);
@@ -88,7 +95,11 @@ export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
     };
 
     const resetForm = () => {
-        setForm({ userRating: 0 });
+        setForm(
+            initialGame
+                ? { ...initialGame, releaseDate: initialGame.releaseDate?.substring(0, 10) }
+                : { userRating: 0 }
+        );
         setAppSearch('');
         setSteamAppOptions([]);
     };
@@ -108,25 +119,39 @@ export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
             userRating: form.userRating ?? null,
             steamAppId: form.steamAppId ?? null,
         };
-        const response = await fetch('games', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-        if (response.ok) {
-            onGameAdded(payload.title);
-            resetForm();
-            onClose();
+        if (isEditing) {
+            const response = await fetch(`games/${initialGame!.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            if (response.ok) {
+                onGameUpdated?.(payload.title);
+                onClose();
+            } else {
+                onError?.(`Failed to update "${payload.title}"`);
+            }
         } else {
-            onError?.(`Failed to add "${payload.title}"`);
+            const response = await fetch('games', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            if (response.ok) {
+                onGameAdded?.(payload.title);
+                resetForm();
+                onClose();
+            } else {
+                onError?.(`Failed to add "${payload.title}"`);
+            }
         }
     };
 
     return (
         <div className="add-game-form">
             <div className="form-header">
-                <h3>Add Game</h3>
-                <p>Search Steam, choose metadata quickly, and review selections before saving.</p>
+                <h3>{isEditing ? 'Edit Game' : 'Add Game'}</h3>
+                <p>{isEditing ? 'Update metadata and save your changes.' : 'Search Steam, choose metadata quickly, and review selections before saving.'}</p>
             </div>
             <form onSubmit={handleSubmit} className="game-form">
                 <section className="form-section">
@@ -277,7 +302,7 @@ export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
                         Cancel
                     </button>
                     <button type="submit" className="form-button">
-                        Add Game
+                        {isEditing ? 'Save Changes' : 'Add Game'}
                     </button>
                 </div>
             </form>

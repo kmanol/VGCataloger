@@ -12,6 +12,7 @@ interface Props {
     page: number;
     totalPages: number;
     totalCount: number;
+    onEdit: (game: GameRow) => void;
     onDelete: (game: GameRow) => void;
     onPageChange: (page: number) => void;
 }
@@ -55,7 +56,7 @@ function renderTableChips(values: string[]) {
     );
 }
 
-export default function GamesTable({ rows, loading, search, page, totalPages, totalCount, onDelete, onPageChange }: Props) {
+export default function GamesTable({ rows, loading, search, page, totalPages, totalCount, onEdit, onDelete, onPageChange }: Props) {
     if (loading) {
         return (
             <div className="loading">
@@ -114,6 +115,12 @@ export default function GamesTable({ rows, loading, search, page, totalPages, to
                                 </td>
                                 <td>{renderTableChips(game.catalogs)}</td>
                                 <td className="table-actions">
+                                    <button
+                                        className="edit-button"
+                                        onClick={() => onEdit(game)}
+                                    >
+                                        Edit
+                                    </button>
                                     <button
                                         className="delete-button"
                                         onClick={() => onDelete(game)}

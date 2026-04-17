@@ -18,6 +18,7 @@ export default function GameManager() {
     const [gamesLoading, setGamesLoading] = useState(false);
     const { toasts, showToast, dismiss } = useToast();
     const [showAddGame, setShowAddGame] = useState(false);
+    const [editingGame, setEditingGame] = useState<Game | null>(null);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -78,6 +79,11 @@ export default function GameManager() {
         }
     };
 
+    const handleEdit = (game: Game) => {
+        setEditingGame(game);
+        setShowAddGame(false);
+    };
+
     const handleDelete = async (game: Game) => {
         if (!window.confirm(`Delete "${game.title}" from your catalog?`)) return;
         const response = await fetch(`games/${game.id}`, { method: 'DELETE' });
@@ -109,19 +115,25 @@ export default function GameManager() {
             <div className="game-manager-toolbar">
                 <button
                     className={`add-game-button ${showAddGame ? 'secondary' : ''}`}
-                    onClick={() => setShowAddGame(v => !v)}
+                    onClick={() => { setShowAddGame(v => !v); setEditingGame(null); }}
                 >
-                    {showAddGame ? 'Close Add Game' : 'Add Game'}
+                    {showAddGame ? 'Close' : 'Add Game'}
                 </button>
             </div>
-            {showAddGame && (
+            {(showAddGame || editingGame) && (
                 <AddGameForm
+                    key={editingGame?.id ?? 'new'}
+                    initialGame={editingGame ?? undefined}
                     onGameAdded={async (title) => {
                         await refreshGames();
                         showToast(`"${title}" added to catalog`);
                     }}
+                    onGameUpdated={async (title) => {
+                        await refreshGames();
+                        showToast(`"${title}" updated`);
+                    }}
                     onError={msg => showToast(msg, 'error')}
-                    onClose={() => setShowAddGame(false)}
+                    onClose={() => { setShowAddGame(false); setEditingGame(null); }}
                 />
             )}
             <div className="search-toolbar">
@@ -149,6 +161,7 @@ export default function GameManager() {
                 page={page}
                 totalPages={totalPages}
                 totalCount={totalCount}
+                onEdit={handleEdit}
                 onDelete={handleDelete}
                 onPageChange={setPage}
             />

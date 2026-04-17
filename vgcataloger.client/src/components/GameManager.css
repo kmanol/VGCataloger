@@ -390,6 +390,22 @@
 
 .table-actions {
   text-align: center;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.edit-button {
+  background-color: var(--accent, #4a90d9);
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  filter: brightness(1.15);
 }
 
 .delete-button {
