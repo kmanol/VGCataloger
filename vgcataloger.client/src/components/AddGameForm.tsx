@@ -10,11 +10,20 @@ interface Props {
     onClose: () => void;
 }
 
+interface SteamAppDetails {
+    releaseDate?: string;
+    developers: string[];
+    publishers: string[];
+    genres: string[];
+    tags: string[];
+}
+
 export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
     const [form, setForm] = useState<Partial<Game>>({ userRating: 0 });
     const [steamAppOptions, setSteamAppOptions] = useState<SteamApp[]>([]);
     const [appSearch, setAppSearch] = useState('');
     const [steamLoading, setSteamLoading] = useState(false);
+    const [detailsLoading, setDetailsLoading] = useState(false);
 
     const { developers: developerOptions, publishers: publisherOptions, platforms: platformOptions,
             genres: genreOptions, tags: tagOptions, statuses: statusOptions, catalogs: catalogOptions,
@@ -48,6 +57,34 @@ export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
 
     const handleSelectChange = (name: keyof Game, value: string[]) => {
         setForm(current => ({ ...current, [name]: value }));
+    };
+
+    const fetchSteamDetails = async (appid: number) => {
+        console.log('[Steam] fetchSteamDetails called with appid:', appid);
+        setDetailsLoading(true);
+        try {
+            const response = await fetch(`/steam/appdetails/${appid}`);
+            console.log('[Steam] Response status:', response.status);
+            if (!response.ok) {
+                console.warn('[Steam] Details fetch failed with status:', response.status);
+                return;
+            }
+            const details: SteamAppDetails = await response.json();
+            console.log('[Steam] Details received:', details);
+            setForm(current => ({
+                ...current,
+                platforms: ['Steam'],
+                ...(details.releaseDate ? { releaseDate: details.releaseDate } : {}),
+                ...(details.developers.length > 0 ? { developers: details.developers } : {}),
+                ...(details.publishers.length > 0 ? { publishers: details.publishers } : {}),
+                ...(details.genres.length > 0 ? { genres: details.genres } : {}),
+                ...(details.tags.length > 0 ? { tags: details.tags } : {}),
+            }));
+        } catch (err) {
+            console.error('[Steam] Error fetching details:', err);
+        } finally {
+            setDetailsLoading(false);
+        }
     };
 
     const resetForm = () => {
@@ -99,7 +136,7 @@ export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
                             value={form.title || ''}
                             options={steamAppOptions}
                             loading={steamLoading}
-                            disabled={metaLoading}
+                            disabled={metaLoading || detailsLoading}
                             onChange={(app) => {
                                 setForm(current => ({
                                     ...current,
@@ -107,8 +144,12 @@ export default function AddGameForm({ onGameAdded, onError, onClose }: Props) {
                                     steamAppId: app.appid || undefined,
                                 }));
                                 setAppSearch(app.name);
+                                if (app.appid) fetchSteamDetails(app.appid);
                             }}
                         />
+                        {detailsLoading && (
+                            <div className="field-help">Fetching details from Steam…</div>
+                        )}
                         <div className="field field--small">
                             <label className="field-label" htmlFor="releaseDate">Release Date</label>
                             <input

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using VGCataloger.Server.Data;
 using VGCataloger.Server.DTOs;
 using VGCataloger.Server.Models;
+using VGCataloger.Server;
 
 namespace VGCataloger.Server.Services
 {
@@ -86,46 +87,25 @@ namespace VGCataloger.Server.Services
             };
 
             foreach (var name in dto.Developers)
-            {
-                var dev = await _context.Developers.FirstOrDefaultAsync(d => d.Name == name);
-                if (dev != null) game.GameDevelopers.Add(new GameDeveloper { Game = game, Developer = dev });
-            }
+                game.GameDevelopers.Add(new GameDeveloper { Game = game, Developer = await UpsertAsync(_context.Developers, name) });
 
             foreach (var name in dto.Publishers)
-            {
-                var pub = await _context.Publishers.FirstOrDefaultAsync(p => p.Name == name);
-                if (pub != null) game.GamePublishers.Add(new GamePublisher { Game = game, Publisher = pub });
-            }
+                game.GamePublishers.Add(new GamePublisher { Game = game, Publisher = await UpsertAsync(_context.Publishers, name) });
 
             foreach (var name in dto.Platforms)
-            {
-                var platform = await _context.Platforms.FirstOrDefaultAsync(p => p.Name == name);
-                if (platform != null) game.GamePlatforms.Add(new GamePlatform { Game = game, Platform = platform });
-            }
+                game.GamePlatforms.Add(new GamePlatform { Game = game, Platform = await UpsertAsync(_context.Platforms, name) });
 
             foreach (var name in dto.Genres)
-            {
-                var genre = await _context.Genres.FirstOrDefaultAsync(g => g.Name == name);
-                if (genre != null) game.GameGenres.Add(new GameGenre { Game = game, Genre = genre });
-            }
+                game.GameGenres.Add(new GameGenre { Game = game, Genre = await UpsertAsync(_context.Genres, name) });
 
             foreach (var name in dto.Tags)
-            {
-                var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == name);
-                if (tag != null) game.GameTags.Add(new GameTag { Game = game, Tag = tag });
-            }
+                game.GameTags.Add(new GameTag { Game = game, Tag = await UpsertAsync(_context.Tags, name) });
 
             foreach (var name in dto.Statuses)
-            {
-                var status = await _context.Statuses.FirstOrDefaultAsync(s => s.Name == name);
-                if (status != null) game.GameStatuses.Add(new GameStatus { Game = game, Status = status });
-            }
+                game.GameStatuses.Add(new GameStatus { Game = game, Status = await UpsertAsync(_context.Statuses, name) });
 
             foreach (var name in dto.Catalogs)
-            {
-                var catalog = await _context.Catalogs.FirstOrDefaultAsync(c => c.Name == name);
-                if (catalog != null) game.GameCatalogs.Add(new GameCatalog { Game = game, Catalog = catalog });
-            }
+                game.GameCatalogs.Add(new GameCatalog { Game = game, Catalog = await UpsertAsync(_context.Catalogs, name) });
 
             _context.Games.Add(game);
             await _context.SaveChangesAsync();
@@ -169,61 +149,52 @@ namespace VGCataloger.Server.Services
             _context.GameDevelopers.RemoveRange(game.GameDevelopers);
             game.GameDevelopers.Clear();
             foreach (var name in dto.Developers)
-            {
-                var dev = await _context.Developers.FirstOrDefaultAsync(d => d.Name == name);
-                if (dev != null) game.GameDevelopers.Add(new GameDeveloper { GameId = game.Id, DeveloperId = dev.Id, Developer = dev, Game = game });
-            }
+                game.GameDevelopers.Add(new GameDeveloper { GameId = game.Id, Game = game, Developer = await UpsertAsync(_context.Developers, name) });
 
             _context.GamePublishers.RemoveRange(game.GamePublishers);
             game.GamePublishers.Clear();
             foreach (var name in dto.Publishers)
-            {
-                var pub = await _context.Publishers.FirstOrDefaultAsync(p => p.Name == name);
-                if (pub != null) game.GamePublishers.Add(new GamePublisher { GameId = game.Id, PublisherId = pub.Id, Publisher = pub, Game = game });
-            }
+                game.GamePublishers.Add(new GamePublisher { GameId = game.Id, Game = game, Publisher = await UpsertAsync(_context.Publishers, name) });
 
             _context.GamePlatforms.RemoveRange(game.GamePlatforms);
             game.GamePlatforms.Clear();
             foreach (var name in dto.Platforms)
-            {
-                var platform = await _context.Platforms.FirstOrDefaultAsync(p => p.Name == name);
-                if (platform != null) game.GamePlatforms.Add(new GamePlatform { GameId = game.Id, PlatformId = platform.Id, Platform = platform, Game = game });
-            }
+                game.GamePlatforms.Add(new GamePlatform { GameId = game.Id, Game = game, Platform = await UpsertAsync(_context.Platforms, name) });
 
             _context.GameGenres.RemoveRange(game.GameGenres);
             game.GameGenres.Clear();
             foreach (var name in dto.Genres)
-            {
-                var genre = await _context.Genres.FirstOrDefaultAsync(g => g.Name == name);
-                if (genre != null) game.GameGenres.Add(new GameGenre { GameId = game.Id, GenreId = genre.Id, Genre = genre, Game = game });
-            }
+                game.GameGenres.Add(new GameGenre { GameId = game.Id, Game = game, Genre = await UpsertAsync(_context.Genres, name) });
 
             _context.GameTags.RemoveRange(game.GameTags);
             game.GameTags.Clear();
             foreach (var name in dto.Tags)
-            {
-                var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == name);
-                if (tag != null) game.GameTags.Add(new GameTag { GameId = game.Id, TagId = tag.Id, Tag = tag, Game = game });
-            }
+                game.GameTags.Add(new GameTag { GameId = game.Id, Game = game, Tag = await UpsertAsync(_context.Tags, name) });
 
             _context.GameStatuses.RemoveRange(game.GameStatuses);
             game.GameStatuses.Clear();
             foreach (var name in dto.Statuses)
-            {
-                var status = await _context.Statuses.FirstOrDefaultAsync(s => s.Name == name);
-                if (status != null) game.GameStatuses.Add(new GameStatus { GameId = game.Id, StatusId = status.Id, Status = status, Game = game });
-            }
+                game.GameStatuses.Add(new GameStatus { GameId = game.Id, Game = game, Status = await UpsertAsync(_context.Statuses, name) });
 
             _context.GameCatalogs.RemoveRange(game.GameCatalogs);
             game.GameCatalogs.Clear();
             foreach (var name in dto.Catalogs)
-            {
-                var catalog = await _context.Catalogs.FirstOrDefaultAsync(c => c.Name == name);
-                if (catalog != null) game.GameCatalogs.Add(new GameCatalog { GameId = game.Id, CatalogId = catalog.Id, Catalog = catalog, Game = game });
-            }
+                game.GameCatalogs.Add(new GameCatalog { GameId = game.Id, Game = game, Catalog = await UpsertAsync(_context.Catalogs, name) });
 
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        // Returns the existing entity by name, or creates and tracks a new one.
+        private async Task<T> UpsertAsync<T>(DbSet<T> set, string name)
+            where T : class, INamedEntity, new()
+        {
+            var entity = await set.FirstOrDefaultAsync(e => e.Name == name);
+            if (entity != null) return entity;
+
+            entity = new T { Name = name };
+            set.Add(entity);
+            return entity;
         }
 
         public async Task<bool> DeleteGameAsync(int id)

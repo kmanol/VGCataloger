@@ -79,7 +79,7 @@ export default defineConfig({
                 target,
                 secure: false
             },
-            '^/steam/applist': {
+            '^/steam': {
                 target,
                 secure: false
             }
